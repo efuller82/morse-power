@@ -57,6 +57,9 @@
             <span class="mode-card-desc">Race the clock for a high score</span>
           </button>
         </div>
+        <button type="button" class="home-scores-btn" data-goto="scores">
+          🏆 High Scores
+        </button>
       </section>
 
       <section id="screen-tutorial" data-screen="tutorial" hidden>
@@ -257,10 +260,51 @@
               <span class="play-result-label">Words per minute</span>
             </div>
           </div>
+
+          <p id="play-scoreboard-status" class="play-scoreboard-status" aria-live="polite"></p>
+
+          <div id="play-scoreboard-entry" class="play-scoreboard-entry" hidden>
+            <input
+              type="text"
+              id="play-name-input"
+              class="play-name-input"
+              maxlength="10"
+              autocomplete="off"
+              placeholder="Your name"
+              aria-label="Your name (up to 10 characters)"
+            />
+            <button type="button" id="play-save-score-btn" class="btn btn-coral play-save-score-btn">
+              Save my score!
+            </button>
+          </div>
+
+          <div id="play-scoreboard-result" class="play-scoreboard-result" hidden>
+            <p id="play-scoreboard-rank" class="play-scoreboard-rank"></p>
+            <ol id="play-scoreboard-result-list" class="scores-list"></ol>
+          </div>
+
           <div class="play-results-buttons">
             <button type="button" id="play-again-btn" class="btn btn-coral">Play again</button>
             <button type="button" id="play-change-mode-btn" class="btn btn-teal">Change mode</button>
+            <button type="button" id="play-see-scores-btn" class="btn btn-teal" data-goto="scores">
+              See high scores
+            </button>
             <button type="button" class="btn btn-teal" data-goto="home">Home</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="screen-scores" data-screen="scores" hidden>
+        <h2>High Scores</h2>
+        <p id="scores-status" class="scores-status" aria-live="polite"></p>
+        <div class="scores-boards">
+          <div class="scores-board">
+            <h3>Send it!</h3>
+            <ol id="scores-list-send" class="scores-list"></ol>
+          </div>
+          <div class="scores-board">
+            <h3>Catch it!</h3>
+            <ol id="scores-list-catch" class="scores-list"></ol>
           </div>
         </div>
       </section>

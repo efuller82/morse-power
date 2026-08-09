@@ -3,6 +3,7 @@
 
 import { SPEEDS } from "/lib/keyer.js";
 import { setSoundOn } from "./audio.js";
+import { mascotSvg } from "./mascot.js";
 import { initTutorial } from "./tutorial.js";
 import { initLearn, onLearnShow } from "./learn.js";
 import { initPlay, onPlayShow } from "./play.js";
@@ -114,10 +115,16 @@ function initSpeedPicker() {
   syncSpeedButtons();
 }
 
+function initHomeMascot() {
+  const mount = document.getElementById("home-mascot");
+  if (mount) mount.innerHTML = mascotSvg("wave", { size: 96 });
+}
+
 function init() {
   initRouter();
   initSpeedPicker();
   initSoundToggle();
+  initHomeMascot();
   initTutorial();
   initLearn();
   initPlay();

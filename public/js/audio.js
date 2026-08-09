@@ -73,6 +73,50 @@ export function startTone() {
   }
 }
 
+// Short, friendly feedback blips — deliberately far from the 600 Hz Morse
+// tone above so they never get mistaken for actual code. One-shot, no lamp
+// callbacks, no cancel handle: they're decorative UI feedback, not part of
+// the keying/playback timeline.
+const BLIP_GAIN = 0.22;
+
+function playBlipTone(freq, startOffsetS, durationS, gain) {
+  const ctx = ensureContext();
+  if (!ctx) return;
+  try {
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.value = freq;
+    const t0 = ctx.currentTime + startOffsetS;
+    const t1 = t0 + durationS;
+    const rampEnd = Math.min(t0 + RAMP_S, t1);
+    g.gain.setValueAtTime(0, t0);
+    g.gain.linearRampToValueAtTime(gain, rampEnd);
+    g.gain.setValueAtTime(gain, Math.max(rampEnd, t1 - RAMP_S));
+    g.gain.linearRampToValueAtTime(0, t1);
+    osc.connect(g).connect(ctx.destination);
+    osc.start(t0);
+    osc.stop(t1 + 0.01);
+  } catch {
+    // Feedback sound is decorative — skip it rather than throw.
+  }
+}
+
+// Two quick rising notes (~120ms total) for "correct!" / "you made it!"
+// moments. No-ops when sound is off.
+export function playSuccessBlip() {
+  if (!soundOn) return;
+  playBlipTone(880, 0, 0.07, BLIP_GAIN);
+  playBlipTone(1175, 0.06, 0.06, BLIP_GAIN);
+}
+
+// One soft low note (~150ms) for a gentle "not quite" — kind, not harsh.
+// No-ops when sound is off.
+export function playErrorBlip() {
+  if (!soundOn) return;
+  playBlipTone(220, 0, 0.15, 0.18);
+}
+
 export function stopTone() {
   if (!toneOsc || !toneGain || !audioCtx) return;
   const osc = toneOsc;

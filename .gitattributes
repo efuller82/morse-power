@@ -1,0 +1,13 @@
+# Force git to always diff source files as text. Without this, any file
+# that ever contains a stray control/NUL byte (e.g. a typo'd test fixture)
+# gets silently treated as binary by git's content-sniffing heuristic —
+# "Binary files a/... and b/... differ" instead of a reviewable diff — even
+# after the offending byte is removed, for as long as an old binary-sniffed
+# blob remains reachable in history. This repo has no binary assets (see
+# AGENTS.md: no images/fonts), so it's safe to force text diffing everywhere
+# these extensions appear.
+*.js diff
+*.json diff
+*.md diff
+*.html diff
+*.css diff

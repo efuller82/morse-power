@@ -43,6 +43,10 @@
     <main>
       <section id="screen-home" data-screen="home">
         <p class="tagline">Learn to send secret messages with light and sound!</p>
+        <div class="home-mascot-row">
+          <div id="home-mascot" class="home-mascot" aria-hidden="true"></div>
+          <p class="speech-bubble">Hi, I'm Sparky! Ready to learn some Morse code?</p>
+        </div>
         <div class="home-modes">
           <button type="button" class="mode-card mode-tutorial" data-goto="tutorial">
             <span class="mode-card-title">Tutorial</span>
@@ -120,7 +124,10 @@
             Hold the key: a quick tap makes a dit ●, holding it makes a dah
             ▬. Pause for a moment to finish a letter.
           </p>
-          <div id="tut-keyer" class="tut-keyer-mount"></div>
+          <div class="tut-key-row">
+            <div id="tut-key-mascot" class="tut-key-mascot" aria-hidden="true"></div>
+            <div id="tut-keyer" class="tut-keyer-mount"></div>
+          </div>
           <p class="tut-readout">You keyed: <span id="tut-committed"></span></p>
         </section>
 
@@ -180,6 +187,7 @@
         </div>
 
         <div id="learn-complete" class="learn-view" hidden>
+          <div id="learn-complete-mascot" class="learn-complete-mascot" aria-hidden="true"></div>
           <h3 id="learn-complete-title">Lesson complete!</h3>
           <p id="learn-complete-copy" class="learn-intro-copy"></p>
           <div class="learn-complete-buttons">
@@ -245,6 +253,7 @@
         </div>
 
         <div id="play-results" class="play-view" hidden>
+          <div id="play-result-mascot" class="play-result-mascot" aria-hidden="true"></div>
           <h3>Time's up!</h3>
           <div class="play-results-grid">
             <div class="play-result-tile">

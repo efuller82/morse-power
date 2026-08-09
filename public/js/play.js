@@ -11,8 +11,10 @@
 import { wordStream, wpm } from "/lib/words.js";
 import { toCode } from "/lib/morse.js";
 import { qualifies } from "/lib/scores.js";
-import { playCode } from "./audio.js";
+import { playCode, playSuccessBlip, playErrorBlip } from "./audio.js";
 import { createKeyer } from "./keyerui.js";
+import { mascotSvg } from "./mascot.js";
+import { confettiBurst } from "./celebrate.js";
 import { getUnitMs } from "./app.js";
 import { fetchScores, renderBoard } from "./scores.js";
 
@@ -41,7 +43,7 @@ function codeSymbols(code) {
 // --- DOM refs, filled in by initPlay() ---
 let views = {};
 let quitBtn, timerEl, tallyEl, lampEl, wordEl, inputEl, skipBtn;
-let resultCorrectEl, resultMissedEl, resultWpmEl, againBtn, changeModeBtn;
+let resultCorrectEl, resultMissedEl, resultWpmEl, resultMascotEl, againBtn, changeModeBtn;
 let scoreboardStatusEl, scoreboardEntryEl, nameInputEl, saveScoreBtn;
 let scoreboardResultEl, scoreboardRankEl, scoreboardResultListEl;
 
@@ -236,12 +238,14 @@ function handleAnswer(correct) {
   clearAdvanceTimer();
 
   if (correct) {
+    playSuccessBlip();
     correctCount++;
     updateTally();
     advanceChar();
     return;
   }
 
+  playErrorBlip();
   missedCount++;
   updateTally();
   showMissReveal(currentWord[charIndex]);
@@ -301,6 +305,7 @@ async function checkLeaderboard(result) {
   if (qualifies(scores, result.mode, result.wpm, result.correct)) {
     scoreboardStatusEl.textContent = "You made the Top 10!";
     scoreboardEntryEl.hidden = false;
+    resultMascotEl.innerHTML = mascotSvg("cheer", { size: 100 });
     nameInputEl.focus();
   }
 }
@@ -331,6 +336,8 @@ async function handleSaveScore() {
       scoreboardRankEl.textContent = `You're #${body.rank}!`;
       renderBoard(scoreboardResultListEl, body.scores, result.mode, body.rank);
       scoreboardResultEl.hidden = false;
+      playSuccessBlip();
+      confettiBurst(scoreboardRankEl);
     }
   } catch {
     if (lastResult !== result) return;
@@ -350,6 +357,9 @@ function showResults() {
   resultCorrectEl.textContent = String(result.correct);
   resultMissedEl.textContent = String(result.missed);
   resultWpmEl.textContent = String(result.wpm);
+  // Encouraging by default — checkLeaderboard() below upgrades this to a
+  // cheer if the round turns out to qualify for the Top 10.
+  resultMascotEl.innerHTML = mascotSvg("wave", { size: 100 });
   resetScoreboardUi();
   showView("results");
   checkLeaderboard(result);
@@ -403,6 +413,7 @@ export function initPlay() {
   resultCorrectEl = document.getElementById("play-result-correct");
   resultMissedEl = document.getElementById("play-result-missed");
   resultWpmEl = document.getElementById("play-result-wpm");
+  resultMascotEl = document.getElementById("play-result-mascot");
   againBtn = document.getElementById("play-again-btn");
   changeModeBtn = document.getElementById("play-change-mode-btn");
 

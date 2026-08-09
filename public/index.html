@@ -129,8 +129,55 @@
 
       <section id="screen-learn" data-screen="learn" hidden>
         <h2>Learn</h2>
-        <p class="coming-soon">Coming soon!</p>
-        <button type="button" class="btn btn-teal" data-goto="home">Back home</button>
+
+        <div class="lamp-row">
+          <div id="learn-lamp" class="lamp" aria-hidden="true"></div>
+        </div>
+
+        <div id="learn-picker" class="learn-view">
+          <p class="learn-intro-copy">
+            Pick a lesson and practice a few new letters at a time.
+          </p>
+          <div id="learn-lesson-list" class="lesson-grid"></div>
+        </div>
+
+        <div id="learn-intro" class="learn-view" hidden>
+          <button type="button" class="btn btn-teal" data-learn-back="picker">
+            Back to lessons
+          </button>
+          <h3 id="learn-intro-title"></h3>
+          <p class="learn-intro-copy">
+            Tap a card to hear each new letter before you start.
+          </p>
+          <div id="learn-intro-cards" class="learn-card-grid"></div>
+          <button type="button" id="learn-start-btn" class="btn btn-coral learn-start-btn">
+            Start practice!
+          </button>
+        </div>
+
+        <div id="learn-practice" class="learn-view" hidden>
+          <div class="learn-practice-header">
+            <button type="button" class="btn btn-teal" data-learn-back="picker">
+              Quit
+            </button>
+            <div id="learn-progress" class="learn-progress" aria-live="polite"></div>
+          </div>
+          <div id="learn-question" class="learn-question"></div>
+          <div id="learn-feedback" class="learn-feedback" aria-live="polite" hidden></div>
+        </div>
+
+        <div id="learn-complete" class="learn-view" hidden>
+          <h3 id="learn-complete-title">Lesson complete!</h3>
+          <p id="learn-complete-copy" class="learn-intro-copy"></p>
+          <div class="learn-complete-buttons">
+            <button type="button" id="learn-next-btn" class="btn btn-coral">
+              Next lesson
+            </button>
+            <button type="button" class="btn btn-teal" data-learn-back="picker">
+              Back to lessons
+            </button>
+          </div>
+        </div>
       </section>
 
       <section id="screen-play" data-screen="play" hidden>

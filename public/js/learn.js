@@ -1,10 +1,10 @@
-// Learn screen: a continuous three-phase flashcard system covering all 36
+// Learn screen: a continuous four-phase flashcard system covering all 36
 // characters (A-Z, then 0-9). Static HTML lives in index.html; this module
 // drives the phase-overview and the single shared "card" view that all
-// three phases render into, plus a phase-complete celebration, and the
+// four phases render into, plus a phase-complete celebration, and the
 // per-phase localStorage completion tracking.
 //
-// The three phases share one deck (lib/flashcards.js's DECK) and one
+// The four phases share one deck (lib/flashcards.js's DECK) and one
 // card-run loop, differing only in how a card is rendered and what
 // happens on a wrong answer:
 //   1. practice — alphabet order, code shown on the card, wrong answers
@@ -15,6 +15,12 @@
 //      missed one to come back later.
 //   3. listen   — shuffled order, code played first, four-letter multiple
 //      choice; wrong answers behave like phase 2 (reveal + re-queue).
+//   4. streak   — strict deck order, no code shown (same card look as
+//      test), always starts at A. A wrong answer reveals the code like
+//      test/listen, but then the WHOLE RUN restarts at A rather than
+//      re-queuing — one miss sends you back to the start. There's no
+//      per-character completion to persist (a run either finishes clean
+//      or restarts), just a best-streak-reached number.
 //
 // State lives at module scope (same reasoning as the old learn.js/play.js)
 // because app.js needs an onLearnShow() hook it can call every time the
@@ -63,12 +69,27 @@ const PHASE_META = [
     desc: "Hear a code, then pick the letter it spells.",
     completeCopy: "You matched every code by ear!",
   },
+  {
+    id: "streak",
+    title: "4. Streak",
+    shortTitle: "Streak",
+    desc: "Start at A and see how far you can climb — one miss sends you back to the start!",
+    completeCopy: "You keyed all 36 in one unbroken streak!",
+  },
 ];
 
 function codeSymbols(code) {
   return Array.from(code)
     .map((s) => (s === "." ? "●" : "▬"))
     .join(" ");
+}
+
+// streakBest is a plain number (the longest unbroken run ever reached),
+// additive to the same JSON blob the other three phases already use —
+// older saved shapes simply don't have it yet, and default to 0 rather
+// than failing to load.
+function isValidStreakBest(value) {
+  return Number.isInteger(value) && value >= 0 && value <= DECK.length;
 }
 
 function loadProgress() {
@@ -80,12 +101,13 @@ function loadProgress() {
       for (const id of PHASE_IDS) {
         progress[id] = Array.isArray(parsed[id]) ? parsed[id] : [];
       }
+      progress.streakBest = isValidStreakBest(parsed.streakBest) ? parsed.streakBest : 0;
       return progress;
     }
   } catch {
     // localStorage unavailable or the saved value is corrupt — start fresh.
   }
-  return { practice: [], test: [], listen: [] };
+  return { practice: [], test: [], listen: [], streakBest: 0 };
 }
 
 function saveProgress(progress) {
@@ -110,6 +132,23 @@ function clearPhaseProgress(phase) {
   saveProgress(progress);
 }
 
+// Called as soon as a streak run passes the previous best, not just at the
+// end of a run — so quitting (or missing) mid-run still banks whatever was
+// reached.
+function updateStreakBest(current) {
+  const progress = loadProgress();
+  if (current > progress.streakBest) {
+    progress.streakBest = current;
+    saveProgress(progress);
+  }
+}
+
+function resetStreakBest() {
+  const progress = loadProgress();
+  progress.streakBest = 0;
+  saveProgress(progress);
+}
+
 // --- DOM refs, filled in by initLearn() ---
 let lamp;
 let overviewView, phaseListEl;
@@ -120,6 +159,10 @@ let views = {};
 // --- Card-run state ---
 let currentPhase = null;
 let queue = [];
+// Live "how far into this unbroken run" counter for the streak phase only
+// — unlike the other three phases, this is never persisted per-character;
+// only the best-ever value (progress.streakBest) is saved.
+let streakCurrent = 0;
 let activeKeyer = null;
 let currentPlayback = null;
 let advanceTimer = null;
@@ -200,13 +243,21 @@ function renderOverview() {
   const progress = loadProgress();
   phaseListEl.innerHTML = "";
 
+  // How far along a phase is: the count of chars marked done for the three
+  // list-based phases, or the best streak ever reached for phase 4 (it has
+  // no per-character "done" set — a run either finishes clean or restarts).
+  function progressCount(phaseId) {
+    return phaseId === "streak" ? progress.streakBest : progress[phaseId].length;
+  }
+
   PHASE_META.forEach((meta, index) => {
-    const doneCount = progress[meta.id].length;
+    const isStreak = meta.id === "streak";
+    const doneCount = progressCount(meta.id);
     const complete = doneCount >= DECK.length;
     // Phase 2 is visually nudged once phase 1 is finished (owner: "phase 2
     // visually suggested after phase 1") — every phase stays tappable
     // regardless, this is just a hint about a sensible next step.
-    const previousDone = index === 0 ? true : progress[PHASE_META[index - 1].id].length >= DECK.length;
+    const previousDone = index === 0 ? true : progressCount(PHASE_META[index - 1].id) >= DECK.length;
     const suggested = previousDone && !complete && index > 0;
 
     const card = document.createElement("div");
@@ -250,7 +301,9 @@ function renderOverview() {
 
     const progressText = document.createElement("p");
     progressText.className = "phase-card-progress";
-    progressText.textContent = `${doneCount} of ${DECK.length} done`;
+    progressText.textContent = isStreak
+      ? `Best: ${doneCount} of ${DECK.length}`
+      : `${doneCount} of ${DECK.length} done`;
 
     const buttons = document.createElement("div");
     buttons.className = "phase-card-buttons";
@@ -258,7 +311,18 @@ function renderOverview() {
     const continueBtn = document.createElement("button");
     continueBtn.type = "button";
     continueBtn.className = "btn btn-coral";
-    continueBtn.textContent = complete ? "Play again" : doneCount > 0 ? "Continue" : "Start";
+    // Streak has no mid-run resume (restart-on-miss is the whole mechanic),
+    // so it only ever offers "Start" or "Try again" — never "Continue"/
+    // "Play again", which would wrongly imply picking up where it left off.
+    continueBtn.textContent = isStreak
+      ? doneCount > 0
+        ? "Try again"
+        : "Start"
+      : complete
+        ? "Play again"
+        : doneCount > 0
+          ? "Continue"
+          : "Start";
     continueBtn.addEventListener("click", () => startPhase(meta.id));
     buttons.appendChild(continueBtn);
 
@@ -268,7 +332,8 @@ function renderOverview() {
       resetBtn.className = "phase-reset-btn";
       resetBtn.textContent = "Start over";
       resetBtn.addEventListener("click", () => {
-        clearPhaseProgress(meta.id);
+        if (isStreak) resetStreakBest();
+        else clearPhaseProgress(meta.id);
         renderOverview();
       });
       buttons.appendChild(resetBtn);
@@ -286,6 +351,7 @@ function goToOverview() {
   cancelPlayback();
   currentPhase = null;
   queue = [];
+  streakCurrent = 0;
   renderOverview();
   showView("overview");
 }
@@ -299,11 +365,18 @@ function startPhase(phaseId) {
   cancelPlayback();
 
   currentPhase = phaseId;
-  const progress = loadProgress();
-  const notDone = remaining(DECK, progress[phaseId]);
-  // Resume = skip completed cards: phase 1 continues at the first not-done
-  // character in deck order; phases 2/3 shuffle the not-done remainder.
-  queue = phaseId === "practice" ? notDone : shuffled(notDone, Math.random);
+  if (phaseId === "streak") {
+    // No resume: every streak run starts fresh at A, in strict deck order.
+    queue = DECK.slice();
+    streakCurrent = 0;
+  } else {
+    const progress = loadProgress();
+    const notDone = remaining(DECK, progress[phaseId]);
+    // Resume = skip completed cards: phase 1 continues at the first
+    // not-done character in deck order; phases 2/3 shuffle the not-done
+    // remainder.
+    queue = phaseId === "practice" ? notDone : shuffled(notDone, Math.random);
+  }
 
   showView("card");
   askNext();
@@ -320,14 +393,21 @@ function askNext() {
     return;
   }
 
-  const progress = loadProgress();
-  progressEl.textContent = `${progress[currentPhase].length} of ${DECK.length}`;
+  // Streak's progress line reflects this run's live length, not a
+  // persisted done-count (a miss resets it) — everything else reads the
+  // persisted per-character progress like before.
+  progressEl.textContent =
+    currentPhase === "streak"
+      ? `${streakCurrent} of ${DECK.length}`
+      : `${loadProgress()[currentPhase].length} of ${DECK.length}`;
 
   questionEl.innerHTML = "";
   const char = queue[0];
   if (currentPhase === "practice") renderPracticeCard(char);
-  else if (currentPhase === "test") renderTestCard(char);
-  else renderListenCard(char);
+  else if (currentPhase === "listen") renderListenCard(char);
+  // test and streak look identical (just the bare character, keyed from
+  // memory) and only differ in what happens on a wrong answer.
+  else renderNoCodeCard(char);
 }
 
 function renderPracticeCard(char) {
@@ -357,7 +437,11 @@ function renderPracticeCard(char) {
   });
 }
 
-function renderTestCard(char) {
+// Shared by phase 2 (test) and phase 4 (streak) — both show just the bare
+// character and key it from memory. They diverge only in what a wrong
+// answer does next (handleQuizWrong re-queues; handleStreakWrong restarts
+// the whole run at A).
+function renderNoCodeCard(char) {
   const card = document.createElement("div");
   card.className = "flash-card";
 
@@ -374,6 +458,7 @@ function renderTestCard(char) {
   activeKeyer = createKeyer(keyerMount, {
     onLetter: (code) => {
       if (code === toCode(char)) handleCorrect(char);
+      else if (currentPhase === "streak") handleStreakWrong(char);
       else handleQuizWrong(char);
     },
   });
@@ -421,13 +506,21 @@ function renderListenCard(char) {
   playAndFlash(code);
 }
 
-// Correct on any phase: blip + sparkle, mark the character done, drop it
-// off the front of the queue, move on.
+// Correct on any phase: blip + sparkle, drop the card off the front of the
+// queue, move on. Streak has no per-character "done" set to update —
+// instead its live run counter advances, and the best-ever value is
+// banked immediately (not just at the end of a run) so quitting or
+// missing mid-run still keeps whatever streak was reached.
 function handleCorrect(char) {
   teardownKeyer();
   playSuccessBlip();
   sparklePop(questionEl);
-  markDone(currentPhase, char);
+  if (currentPhase === "streak") {
+    streakCurrent++;
+    updateStreakBest(streakCurrent);
+  } else {
+    markDone(currentPhase, char);
+  }
   queue.shift();
   askNext();
 }
@@ -461,6 +554,32 @@ function handleQuizWrong(char) {
       if (token !== runToken) return;
       advanceTimer = null;
       queue = requeue(queue, char, REQUEUE_GAP, Math.random);
+      askNext();
+    }, REVEAL_PAUSE_MS);
+  });
+}
+
+// Streak wrong: reveal the code exactly like a test/listen miss, but then
+// the whole run restarts at A instead of re-queuing just the missed card
+// — one miss sends the player back to the start. The best-ever streak was
+// already banked as it was reached (see handleCorrect), so restarting
+// here never loses progress that mattered.
+function handleStreakWrong(char) {
+  const token = runToken;
+  playErrorBlip();
+  teardownKeyer();
+
+  const code = toCode(char);
+  showFeedback("bad", `Not quite — ${char} is ${codeSymbols(code)}. Back to the start!`);
+  const controller = playAndFlash(code);
+
+  controller.done.then(() => {
+    if (token !== runToken) return;
+    advanceTimer = setTimeout(() => {
+      if (token !== runToken) return;
+      advanceTimer = null;
+      queue = DECK.slice();
+      streakCurrent = 0;
       askNext();
     }, REVEAL_PAUSE_MS);
   });

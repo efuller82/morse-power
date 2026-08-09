@@ -1374,7 +1374,11 @@ main > section[hidden] {
 
 .phase-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  /* 190px keeps all four phase cards (Practice/Test/Listen/Streak) on one
+     row within main's 900px max-width on wide screens; narrower viewports
+     fall back to fewer columns automatically, and the 480px breakpoint
+     below forces a single column. */
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   gap: 18px;
   margin-top: 16px;
 }
@@ -1451,7 +1455,10 @@ main > section[hidden] {
   flex-wrap: wrap;
   align-items: center;
   gap: 10px;
-  margin-top: 4px;
+  /* auto rather than a fixed px: on a wide row grid stretches every card to
+     the tallest one (the Streak card's longer description), and this pins
+     each card's buttons to the bottom instead of leaving a ragged gap. */
+  margin-top: auto;
 }
 
 .phase-reset-btn {

@@ -44,7 +44,8 @@ requires both CI checks.
   now stays in view while scrolling Tutorial/Learn (#16), and Learn
   practice shows a cheat-sheet key (characters + codes) beside the
   telegraph key on key-questions, with a compact practice layout so both
-  fit on screen at once (#18).
+  fit on screen at once (#18), and the Tutorial's "Try the key!" block
+  shows the full 36-character reference key beside the telegraph key (#20).
 
 ## Next
 

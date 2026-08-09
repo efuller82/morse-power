@@ -136,6 +136,22 @@ export function initTutorial() {
 
   document.getElementById("tut-key-mascot").innerHTML = mascotSvg("think", { size: 64 });
 
+  // Compact reference key beside the telegraph key (owner request: look up
+  // a code and key it without scrolling back to the big chart above).
+  const keyChart = document.getElementById("tut-key-chart");
+  for (const char of ALPHABET) {
+    const cell = document.createElement("div");
+    cell.className = "mini-key-cell";
+    const charEl = document.createElement("span");
+    charEl.className = "mini-key-char";
+    charEl.textContent = char;
+    const codeEl = document.createElement("span");
+    codeEl.className = "mini-key-code";
+    codeEl.textContent = codeSymbols(MORSE[char]);
+    cell.append(charEl, codeEl);
+    keyChart.appendChild(cell);
+  }
+
   const committedEl = document.getElementById("tut-committed");
   const keyerMount = document.getElementById("tut-keyer");
   let keyedSoFar = "";

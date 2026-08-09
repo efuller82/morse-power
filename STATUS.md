@@ -11,10 +11,12 @@ The complete MVP. `node server.js` → http://localhost:3000:
 - **Tutorial** — what Morse is, extensive unit-timing teaching with a
   visual diagram and hear-it buttons, full A–Z 0–9 chart with audio + lamp
   playback, live practice telegraph key (mouse/touch/spacebar).
-- **Learn** — three-phase flashcards over all 36 characters: Practice
+- **Learn** — four-phase flashcards over all 36 characters: Practice
   (code showing, same card until keyed right), Test (no code; a miss
-  reveals the answer and the card comes back later), and Listen (hear the
-  code, pick the letter). Per-phase progress persists in localStorage.
+  reveals the answer and the card comes back later), Listen (hear the
+  code, pick the letter), and Streak (strict A→9 order, one miss reveals
+  the answer and restarts the run at A; best streak is banked as you go).
+  Per-phase progress persists in localStorage.
 - **Play** — 60-second scored rounds, "Send it!" (key the shown character)
   or "Catch it!" (hear/watch code, answer by keyboard or letter grid);
   prompts come from an endless random word stream so rounds can't be
@@ -51,7 +53,9 @@ requires both CI checks.
   a Clear button resets the Tutorial's "You keyed:" line (#22).
 - Owner then replaced the lesson-based Learn mode wholesale with the
   three-phase flashcard system (#24) — the #18 cheat sheet went with it
-  (phase 1 shows the code on the card itself).
+  (phase 1 shows the code on the card itself) — and added a fourth
+  Streak phase (#26): climb the deck in order, a miss restarts the run,
+  best streak persisted.
 
 ## Next
 

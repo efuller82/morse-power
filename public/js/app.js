@@ -3,6 +3,7 @@
 
 import { SPEEDS } from "/lib/keyer.js";
 import { initTutorial } from "./tutorial.js";
+import { initLearn, onLearnShow } from "./learn.js";
 
 const SPEED_STORAGE_KEY = "morse-power.speed";
 const DEFAULT_SPEED = "medium";
@@ -49,6 +50,9 @@ export function showScreen(name) {
   for (const section of document.querySelectorAll("main > section[data-screen]")) {
     section.hidden = section.dataset.screen !== target;
   }
+  // Learn keeps its own picker/intro/practice/complete sub-views; make sure
+  // arriving here always starts at the (freshly starred) picker.
+  if (target === "learn") onLearnShow();
 }
 
 function syncSpeedButtons() {
@@ -75,6 +79,7 @@ function init() {
   initRouter();
   initSpeedPicker();
   initTutorial();
+  initLearn();
 }
 
 if (document.readyState === "loading") {

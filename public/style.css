@@ -708,3 +708,221 @@ main > section[hidden] {
   border-color: var(--coral);
   background: rgba(239, 71, 111, 0.15);
 }
+
+/* ---------- Play ---------- */
+
+/* Overrides the "Coming soon screens" centering rule now that Play has
+   real content — same trick learn.js's CSS block used. */
+#screen-play {
+  text-align: left;
+}
+
+.play-view[hidden] {
+  display: none !important;
+}
+
+.play-intro-copy {
+  color: var(--white);
+  text-align: center;
+}
+
+/* Direction choice */
+
+.play-direction-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.direction-card {
+  border: none;
+  border-radius: var(--radius-lg);
+  padding: 28px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+  color: var(--navy);
+  min-height: 140px;
+  justify-content: center;
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.2);
+}
+
+.direction-card:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
+}
+
+.direction-card-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.direction-card-desc {
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.direction-send {
+  background: var(--teal);
+}
+
+.direction-catch {
+  background: var(--yellow);
+}
+
+/* Round */
+
+.play-round-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.play-timer {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--yellow);
+  min-width: 2.4em;
+  text-align: center;
+}
+
+.play-timer.play-timer-low {
+  color: var(--coral);
+}
+
+.play-tally {
+  font-weight: 700;
+  color: var(--white);
+  text-align: right;
+}
+
+.play-word {
+  text-align: center;
+  font-size: 2.2rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  margin: 12px 0 20px;
+}
+
+.play-word-char {
+  color: #9fb0d0;
+}
+
+.play-word-done {
+  color: var(--teal);
+}
+
+.play-word-current {
+  color: var(--yellow);
+  text-decoration: underline;
+  text-underline-offset: 6px;
+}
+
+.play-input {
+  min-height: 80px;
+}
+
+.play-keyer-mount {
+  display: flex;
+  justify-content: center;
+}
+
+.play-replay-btn {
+  display: block;
+  margin: 0 auto 20px;
+}
+
+.play-answer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));
+  gap: 8px;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.play-answer-btn {
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  color: var(--navy);
+  font-size: 1.1rem;
+  font-weight: 800;
+  min-height: 44px;
+  padding: 8px 0;
+}
+
+.play-answer-btn:active {
+  transform: translateY(2px);
+}
+
+.play-miss-message {
+  text-align: center;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--coral);
+  margin-top: 12px;
+}
+
+.play-round-buttons {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+/* Results */
+
+#play-results h3 {
+  text-align: center;
+  color: var(--yellow);
+}
+
+.play-results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 16px;
+  margin: 20px 0;
+}
+
+.play-result-tile {
+  background: var(--navy-light);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.play-result-value {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--teal);
+}
+
+.play-result-label {
+  font-size: 0.9rem;
+  color: var(--white);
+}
+
+.play-results-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+}
+
+@media (max-width: 480px) {
+  .play-word {
+    font-size: 1.7rem;
+  }
+
+  .play-answer-btn {
+    font-size: 0.95rem;
+    min-height: 40px;
+  }
+}

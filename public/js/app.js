@@ -5,6 +5,7 @@ import { SPEEDS } from "/lib/keyer.js";
 import { setSoundOn } from "./audio.js";
 import { initTutorial } from "./tutorial.js";
 import { initLearn, onLearnShow } from "./learn.js";
+import { initPlay, onPlayShow } from "./play.js";
 
 const SPEED_STORAGE_KEY = "morse-power.speed";
 const SOUND_STORAGE_KEY = "morse-power.sound";
@@ -55,6 +56,9 @@ export function showScreen(name) {
   // Learn keeps its own picker/intro/practice/complete sub-views; make sure
   // arriving here always starts at the (freshly starred) picker.
   if (target === "learn") onLearnShow();
+  // Same idea for Play: always land on the direction choice, and tear down
+  // any round left running in the background.
+  if (target === "play") onPlayShow();
 }
 
 function syncSpeedButtons() {
@@ -113,6 +117,7 @@ function init() {
   initSoundToggle();
   initTutorial();
   initLearn();
+  initPlay();
 }
 
 if (document.readyState === "loading") {

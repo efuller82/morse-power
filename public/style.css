@@ -1532,3 +1532,52 @@ main > section[hidden] {
     grid-column: 2;
   }
 }
+
+/* ---------- Learn cheat sheet ---------- */
+
+.learn-cheatsheet {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 4px 0 14px;
+}
+
+.learn-cheat-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  background: var(--navy-lighter);
+  border-radius: var(--radius-sm);
+  padding: 6px 12px;
+}
+
+.learn-cheat-char {
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.learn-cheat-code {
+  font-size: 0.72rem;
+  color: var(--yellow);
+  letter-spacing: 0.06em;
+}
+
+/* Practice mode reclaims vertical space so the cheat sheet, prompt, and
+   telegraph key fit on screen together. */
+#screen-learn.practicing > h2 {
+  display: none;
+}
+
+#screen-learn.practicing .lamp-row {
+  padding-bottom: 4px;
+}
+
+#screen-learn.practicing .learn-question {
+  padding: 14px 20px;
+}
+
+#screen-learn.practicing .learn-send-line {
+  margin-bottom: 8px;
+}

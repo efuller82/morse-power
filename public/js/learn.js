@@ -56,7 +56,7 @@ function markLessonCompleted(lessonId) {
 let lamp;
 let pickerView, lessonListEl;
 let introView, introTitleEl, introCardsEl, startBtn;
-let practiceView, progressEl, questionEl, feedbackEl;
+let practiceView, progressEl, questionEl, feedbackEl, cheatsheetEl;
 let completeView, completeTitleEl, completeCopyEl, completeMascotEl, nextLessonBtn;
 let views = {};
 
@@ -105,6 +105,10 @@ function showView(name) {
     teardownKeyer();
     cancelPlayback();
   }
+  // Practice needs every vertical pixel: the cheat sheet, prompt, and
+  // telegraph key should all fit on screen together, so the screen heading
+  // gets out of the way.
+  document.getElementById("screen-learn").classList.toggle("practicing", name === "practice");
   for (const [key, el] of Object.entries(views)) {
     el.hidden = key !== name;
   }
@@ -190,8 +194,33 @@ function startPractice() {
   queue = buildQueue(currentLessonIndex);
   totalQuestions = queue.length;
   completedCount = 0;
+  const queueChars = new Set(queue.map((q) => q.char));
+  renderCheatsheet(
+    LESSONS.flatMap((lesson) => lesson.chars).filter((c) => queueChars.has(c))
+  );
   showView("practice");
   askNext();
+}
+
+// The reference key for this practice run: every character the queue can
+// ask about, with its code underneath. Shown during key-questions (owner
+// request: the key and the telegraph button must be visible at the same
+// time) and hidden during hear-questions, where it would give the
+// multiple-choice answer away.
+function renderCheatsheet(chars) {
+  cheatsheetEl.innerHTML = "";
+  for (const char of chars) {
+    const cell = document.createElement("div");
+    cell.className = "learn-cheat-cell";
+    const charEl = document.createElement("span");
+    charEl.className = "learn-cheat-char";
+    charEl.textContent = char;
+    const codeEl = document.createElement("span");
+    codeEl.className = "learn-cheat-code";
+    codeEl.textContent = codeSymbols(toCode(char));
+    cell.append(charEl, codeEl);
+    cheatsheetEl.appendChild(cell);
+  }
 }
 
 function askNext() {
@@ -217,6 +246,7 @@ function askNext() {
 }
 
 function renderKeyQuestion(question) {
+  cheatsheetEl.hidden = false;
   questionEl.innerHTML = "";
 
   const sendLine = document.createElement("p");
@@ -238,6 +268,7 @@ function renderKeyQuestion(question) {
 }
 
 function renderHearQuestion(question) {
+  cheatsheetEl.hidden = true;
   questionEl.innerHTML = "";
   const code = toCode(question.char);
 
@@ -341,6 +372,7 @@ export function initLearn() {
   progressEl = document.getElementById("learn-progress");
   questionEl = document.getElementById("learn-question");
   feedbackEl = document.getElementById("learn-feedback");
+  cheatsheetEl = document.getElementById("learn-cheatsheet");
 
   completeView = document.getElementById("learn-complete");
   completeTitleEl = document.getElementById("learn-complete-title");

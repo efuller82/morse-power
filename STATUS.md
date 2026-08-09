@@ -2,7 +2,7 @@
 
 Replace this file's contents at the end of each working session. Do not append.
 
-- **Updated:** 2026-08-08 (bootstrap + full MVP session)
+- **Updated:** 2026-08-09 (bootstrap + full MVP + first playtest fixes)
 
 ## Live
 
@@ -40,6 +40,11 @@ requires both CI checks.
   push (containing `ci.yml`) was rejected until the owner refreshed auth.
 - Security review of the leaderboard (the only feature touching player
   data) is recorded on issue #5.
+- First live playtest feedback landed the same session: the flashing lamp
+  now stays in view while scrolling Tutorial/Learn (#16), and Learn
+  practice shows a cheat-sheet key (characters + codes) beside the
+  telegraph key on key-questions, with a compact practice layout so both
+  fit on screen at once (#18).
 
 ## Next
 

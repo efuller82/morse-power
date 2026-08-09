@@ -192,8 +192,77 @@
 
       <section id="screen-play" data-screen="play" hidden>
         <h2>Play</h2>
-        <p class="coming-soon">Coming soon!</p>
-        <button type="button" class="btn btn-teal" data-goto="home">Back home</button>
+
+        <div id="play-choice" class="play-view">
+          <p class="play-intro-copy">
+            Pick how you want to play. You'll have 60 seconds!
+          </p>
+          <div class="play-direction-grid">
+            <button
+              type="button"
+              class="direction-card direction-send"
+              data-play-direction="send"
+            >
+              <span class="direction-card-title">Send it!</span>
+              <span class="direction-card-desc">
+                See a letter, key its code on the telegraph key.
+              </span>
+            </button>
+            <button
+              type="button"
+              class="direction-card direction-catch"
+              data-play-direction="catch"
+            >
+              <span class="direction-card-title">Catch it!</span>
+              <span class="direction-card-desc">
+                Hear (or watch) a code, then name the letter.
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <div id="play-round" class="play-view" hidden>
+          <div class="play-round-header">
+            <button type="button" id="play-quit-btn" class="btn btn-teal">Quit</button>
+            <div id="play-timer" class="play-timer" aria-live="polite">60</div>
+            <div id="play-tally" class="play-tally" aria-live="polite">0 correct · 0 missed</div>
+          </div>
+
+          <div class="lamp-row">
+            <div id="play-lamp" class="lamp" aria-hidden="true"></div>
+          </div>
+
+          <div id="play-word" class="play-word" aria-live="polite"></div>
+
+          <div id="play-input" class="play-input"></div>
+
+          <div class="play-round-buttons">
+            <button type="button" id="play-skip-btn" class="btn btn-coral">Skip</button>
+          </div>
+        </div>
+
+        <div id="play-results" class="play-view" hidden>
+          <h3>Time's up!</h3>
+          <div class="play-results-grid">
+            <div class="play-result-tile">
+              <span id="play-result-correct" class="play-result-value"></span>
+              <span class="play-result-label">Correct</span>
+            </div>
+            <div class="play-result-tile">
+              <span id="play-result-missed" class="play-result-value"></span>
+              <span class="play-result-label">Missed</span>
+            </div>
+            <div class="play-result-tile">
+              <span id="play-result-wpm" class="play-result-value"></span>
+              <span class="play-result-label">Words per minute</span>
+            </div>
+          </div>
+          <div class="play-results-buttons">
+            <button type="button" id="play-again-btn" class="btn btn-coral">Play again</button>
+            <button type="button" id="play-change-mode-btn" class="btn btn-teal">Change mode</button>
+            <button type="button" class="btn btn-teal" data-goto="home">Home</button>
+          </div>
+        </div>
       </section>
     </main>
 

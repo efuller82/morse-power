@@ -1,4 +1,6 @@
-# Extended for the chosen stack during bootstrap.
 .env
 .env.*
 .local/
+node_modules/
+data/
+*.log

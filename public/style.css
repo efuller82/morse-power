@@ -569,6 +569,33 @@ main > section[hidden] {
   padding: 8px 0 20px;
 }
 
+/* Tutorial and Learn scroll — keep their lamps in view (below the sticky
+   header), since the lamp is the only playback signal when sound is off.
+   Right-aligned so the bulb floats past block headings, not over them.
+   Play's lamp sits next to the action already and keeps the default flow. */
+#screen-tutorial .lamp-row,
+#screen-learn .lamp-row {
+  justify-content: flex-end;
+  padding-right: 4px;
+  position: sticky;
+  top: 84px;
+  z-index: 5;
+  pointer-events: none;
+}
+
+@media (max-width: 480px) {
+  /* The header wraps taller on phones — pin those lamps to the bottom
+     corner instead, where they are always visible. */
+  #screen-tutorial .lamp-row,
+  #screen-learn .lamp-row {
+    position: fixed;
+    right: 14px;
+    bottom: 14px;
+    top: auto;
+    padding: 0;
+  }
+}
+
 .lamp {
   width: 56px;
   height: 56px;

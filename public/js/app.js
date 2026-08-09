@@ -6,11 +6,12 @@ import { setSoundOn } from "./audio.js";
 import { initTutorial } from "./tutorial.js";
 import { initLearn, onLearnShow } from "./learn.js";
 import { initPlay, onPlayShow } from "./play.js";
+import { initScores, onScoresShow } from "./scores.js";
 
 const SPEED_STORAGE_KEY = "morse-power.speed";
 const SOUND_STORAGE_KEY = "morse-power.sound";
 const DEFAULT_SPEED = "medium";
-const SCREEN_NAMES = ["home", "tutorial", "learn", "play"];
+const SCREEN_NAMES = ["home", "tutorial", "learn", "play", "scores"];
 
 let speed = loadSpeed();
 
@@ -59,6 +60,8 @@ export function showScreen(name) {
   // Same idea for Play: always land on the direction choice, and tear down
   // any round left running in the background.
   if (target === "play") onPlayShow();
+  // High Scores always refetches on show, so it never displays stale data.
+  if (target === "scores") onScoresShow();
 }
 
 function syncSpeedButtons() {
@@ -118,6 +121,7 @@ function init() {
   initTutorial();
   initLearn();
   initPlay();
+  initScores();
 }
 
 if (document.readyState === "loading") {

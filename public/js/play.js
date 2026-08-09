@@ -10,9 +10,11 @@
 
 import { wordStream, wpm } from "/lib/words.js";
 import { toCode } from "/lib/morse.js";
+import { qualifies } from "/lib/scores.js";
 import { playCode } from "./audio.js";
 import { createKeyer } from "./keyerui.js";
 import { getUnitMs } from "./app.js";
+import { fetchScores, renderBoard } from "./scores.js";
 
 const ROUND_SECONDS = 60;
 const LOW_TIME_SECONDS = 10;
@@ -20,6 +22,15 @@ const MISS_REVEAL_MS = 1200;
 const TIMER_TICK_MS = 250;
 
 const ANSWER_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".split("");
+
+// play.js's internal round "direction" already happens to spell the same
+// words as the leaderboard API's "mode", but the mapping is kept explicit
+// (rather than passing `direction` straight through) so the two naming
+// schemes are free to diverge later without a silent breakage.
+const DIRECTION_TO_MODE = { send: "send", catch: "catch" };
+function directionToMode(dir) {
+  return DIRECTION_TO_MODE[dir] ?? dir;
+}
 
 function codeSymbols(code) {
   return Array.from(code)
@@ -31,6 +42,8 @@ function codeSymbols(code) {
 let views = {};
 let quitBtn, timerEl, tallyEl, lampEl, wordEl, inputEl, skipBtn;
 let resultCorrectEl, resultMissedEl, resultWpmEl, againBtn, changeModeBtn;
+let scoreboardStatusEl, scoreboardEntryEl, nameInputEl, saveScoreBtn;
+let scoreboardResultEl, scoreboardRankEl, scoreboardResultListEl;
 
 // --- Round state ---
 let direction = "send";
@@ -45,6 +58,10 @@ let activeKeyer = null;
 let currentPlayback = null;
 let advanceTimer = null;
 let roundRunning = false;
+
+// The just-finished round's result, kept around so handleSaveScore() can
+// POST it once the player has typed a name.
+let lastResult = null;
 
 function cancelPlayback() {
   if (currentPlayback) {
@@ -259,17 +276,83 @@ function startRound(dir) {
   askCurrentChar();
 }
 
+// --- Leaderboard (results-view scoreboard block) ---
+
+function resetScoreboardUi() {
+  scoreboardStatusEl.textContent = "";
+  scoreboardEntryEl.hidden = true;
+  scoreboardResultEl.hidden = true;
+  nameInputEl.value = "";
+  saveScoreBtn.disabled = false;
+}
+
+// Fetches the current leaderboard and, if this round's score would make
+// the Top 10, reveals the name-entry block. Fire-and-forget from
+// showResults() — nothing else on the results view depends on it.
+async function checkLeaderboard(result) {
+  let scores;
+  try {
+    scores = await fetchScores();
+  } catch {
+    scoreboardStatusEl.textContent = "Scoreboard is napping.";
+    return;
+  }
+  if (lastResult !== result) return; // a newer round finished while we waited
+  if (qualifies(scores, result.mode, result.wpm, result.correct)) {
+    scoreboardStatusEl.textContent = "You made the Top 10!";
+    scoreboardEntryEl.hidden = false;
+    nameInputEl.focus();
+  }
+}
+
+async function handleSaveScore() {
+  if (!lastResult) return;
+  const result = lastResult;
+  saveScoreBtn.disabled = true;
+  try {
+    const res = await fetch("/api/scores", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: nameInputEl.value,
+        mode: result.mode,
+        wpm: result.wpm,
+        correct: result.correct,
+        missed: result.missed,
+      }),
+    });
+    if (!res.ok) throw new Error(`save failed: ${res.status}`);
+    const body = await res.json();
+    if (lastResult !== result) return; // a newer round finished while we waited
+
+    scoreboardEntryEl.hidden = true;
+    scoreboardStatusEl.textContent = "";
+    if (body.rank) {
+      scoreboardRankEl.textContent = `You're #${body.rank}!`;
+      renderBoard(scoreboardResultListEl, body.scores, result.mode, body.rank);
+      scoreboardResultEl.hidden = false;
+    }
+  } catch {
+    if (lastResult !== result) return;
+    saveScoreBtn.disabled = false;
+    scoreboardStatusEl.textContent = "Scoreboard is napping. Try again soon.";
+  }
+}
+
 function showResults() {
-  const results = {
-    mode: direction,
+  const result = {
+    mode: directionToMode(direction),
     correct: correctCount,
     missed: missedCount,
     wpm: wpm(correctCount),
   };
-  resultCorrectEl.textContent = String(results.correct);
-  resultMissedEl.textContent = String(results.missed);
-  resultWpmEl.textContent = String(results.wpm);
+  lastResult = result;
+  resultCorrectEl.textContent = String(result.correct);
+  resultMissedEl.textContent = String(result.missed);
+  resultWpmEl.textContent = String(result.wpm);
+  resetScoreboardUi();
   showView("results");
+  checkLeaderboard(result);
 }
 
 function endRound() {
@@ -323,6 +406,14 @@ export function initPlay() {
   againBtn = document.getElementById("play-again-btn");
   changeModeBtn = document.getElementById("play-change-mode-btn");
 
+  scoreboardStatusEl = document.getElementById("play-scoreboard-status");
+  scoreboardEntryEl = document.getElementById("play-scoreboard-entry");
+  nameInputEl = document.getElementById("play-name-input");
+  saveScoreBtn = document.getElementById("play-save-score-btn");
+  scoreboardResultEl = document.getElementById("play-scoreboard-result");
+  scoreboardRankEl = document.getElementById("play-scoreboard-rank");
+  scoreboardResultListEl = document.getElementById("play-scoreboard-result-list");
+
   for (const btn of document.querySelectorAll("[data-play-direction]")) {
     btn.addEventListener("click", () => startRound(btn.dataset.playDirection));
   }
@@ -330,6 +421,7 @@ export function initPlay() {
   skipBtn.addEventListener("click", handleSkip);
   againBtn.addEventListener("click", () => startRound(direction));
   changeModeBtn.addEventListener("click", () => showView("choice"));
+  saveScoreBtn.addEventListener("click", handleSaveScore);
 
   window.addEventListener("keydown", onWindowKeydown);
 

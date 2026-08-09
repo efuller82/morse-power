@@ -689,3 +689,22 @@ main > section[hidden] {
     padding: 16px 0;
   }
 }
+
+/* ---------- Sound toggle ---------- */
+
+.sound-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid var(--navy-lighter);
+  background: transparent;
+  font-size: 1.3rem;
+  line-height: 1;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.sound-btn.sound-off {
+  border-color: var(--coral);
+  background: rgba(239, 71, 111, 0.15);
+}

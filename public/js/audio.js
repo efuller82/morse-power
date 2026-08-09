@@ -13,6 +13,20 @@ const ELEMENT_GAP_UNITS = 1;
 
 let audioCtx = null;
 
+// Global sound switch — when off, tones are skipped entirely but playCode's
+// lamp callbacks still fire, so the game stays playable as silent
+// dot-and-dash (light) mode.
+let soundOn = true;
+
+export function setSoundOn(value) {
+  soundOn = Boolean(value);
+  if (!soundOn) stopTone();
+}
+
+export function isSoundOn() {
+  return soundOn;
+}
+
 // Lazily create (or resume) the shared AudioContext. Must be called from a
 // user-gesture handler the first time, per browser autoplay policy. Returns
 // null if audio is unavailable/blocked — callers must degrade gracefully.
@@ -38,6 +52,7 @@ let toneGain = null;
 // Continuous tone for while the telegraph key is held.
 export function startTone() {
   stopTone();
+  if (!soundOn) return;
   const ctx = ensureContext();
   if (!ctx) return;
   try {
@@ -124,7 +139,7 @@ export function playCode(code, unitMs, { onOn, onOff } = {}) {
   const startTime = ctx ? ctx.currentTime : 0;
 
   for (const ev of events) {
-    if (ctx) {
+    if (ctx && soundOn) {
       try {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();

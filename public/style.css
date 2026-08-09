@@ -37,6 +37,15 @@ h3 {
   margin: 0 0 0.5em;
 }
 
+/* Every screen's top-level heading (Tutorial / Learn / Play / High Scores)
+   shares this look, so the app reads as one consistent place rather than
+   four separately-styled screens. */
+h2 {
+  color: var(--yellow);
+  font-size: 1.6rem;
+  letter-spacing: 0.02em;
+}
+
 p {
   margin: 0 0 0.75em;
 }
@@ -99,6 +108,7 @@ button {
   padding: 8px 12px;
   font-size: 0.85rem;
   font-weight: 600;
+  min-height: 44px;
 }
 
 .speed-btn[aria-pressed="true"] {
@@ -181,8 +191,35 @@ main > section[hidden] {
 }
 
 .mode-card:active {
-  transform: translateY(4px);
+  transform: translateY(4px) scale(0.98);
   box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
+}
+
+/* Gentle hover wobble on mode/direction cards — same treatment for Play's
+   direction cards below, since they're the same kind of big tappable card. */
+.mode-card:hover,
+.direction-card:hover {
+  animation: card-wobble 0.4s ease-in-out;
+}
+
+@keyframes card-wobble {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-1.5deg);
+  }
+  75% {
+    transform: rotate(1.5deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mode-card:hover,
+  .direction-card:hover {
+    animation: none;
+  }
 }
 
 .mode-card-title {
@@ -208,6 +245,63 @@ main > section[hidden] {
   color: var(--white);
 }
 
+/* Mascot + welcome speech bubble */
+
+.home-mascot-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+.home-mascot {
+  flex-shrink: 0;
+  line-height: 0;
+}
+
+.speech-bubble {
+  position: relative;
+  background: var(--white);
+  color: var(--navy);
+  font-weight: 700;
+  font-size: 1rem;
+  padding: 12px 18px;
+  border-radius: var(--radius-md);
+  max-width: 280px;
+  margin: 0;
+}
+
+.speech-bubble::before {
+  content: "";
+  position: absolute;
+  left: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-width: 8px 10px 8px 0;
+  border-style: solid;
+  border-color: transparent var(--white) transparent transparent;
+}
+
+@media (max-width: 480px) {
+  .home-mascot-row {
+    flex-direction: column;
+  }
+
+  .speech-bubble {
+    text-align: center;
+  }
+
+  .speech-bubble::before {
+    left: 50%;
+    top: -8px;
+    transform: translateX(-50%);
+    border-width: 0 8px 10px 8px;
+    border-color: transparent transparent var(--white) transparent;
+  }
+}
+
 /* ---------- Coming soon screens ---------- */
 
 .coming-soon {
@@ -219,6 +313,229 @@ main > section[hidden] {
 #screen-learn,
 #screen-play {
   text-align: center;
+}
+
+/* ---------- Mascot ---------- */
+/* Shared styling for every mascotSvg() instance (public/js/mascot.js) —
+   home, tutorial, learn-complete, play-results. Colors live here, not in
+   the SVG markup, so the mascot always tracks the theme palette. */
+
+.mascot {
+  display: block;
+  overflow: visible;
+}
+
+.mascot-body {
+  fill: var(--teal);
+  stroke: var(--navy);
+  stroke-width: 3;
+}
+
+.mascot-shell-seam {
+  fill: none;
+  stroke: var(--navy);
+  stroke-width: 2;
+  opacity: 0.22;
+}
+
+.mascot-legs path {
+  fill: none;
+  stroke: var(--coral);
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+
+.mascot-antenna {
+  fill: none;
+  stroke: var(--navy);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.mascot-antenna-glow {
+  fill: var(--yellow);
+  opacity: 0.35;
+}
+
+.mascot-antenna-bulb {
+  fill: var(--yellow);
+  stroke: var(--navy);
+  stroke-width: 1.5;
+}
+
+.mascot-cheek {
+  fill: var(--coral);
+  opacity: 0.4;
+}
+
+.mascot-eye-white {
+  fill: var(--white);
+}
+
+.mascot-pupil {
+  fill: var(--navy);
+}
+
+.mascot-eye-glint {
+  fill: var(--white);
+}
+
+.mascot-eye-happy {
+  fill: none;
+  stroke: var(--navy);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.mascot-mouth-line {
+  fill: none;
+  stroke: var(--navy);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+.mascot-mouth-open {
+  fill: var(--navy);
+  opacity: 0.85;
+}
+
+.mascot-sparkle {
+  fill: var(--yellow);
+  transform-origin: center;
+  animation: mascot-twinkle 1.1s ease-in-out infinite;
+}
+
+.mascot-sparkle-b {
+  fill: var(--coral);
+  animation-delay: 0.3s;
+}
+
+.mascot-arm-wave {
+  transform-origin: 22px 70px;
+  animation: mascot-wave 1.5s ease-in-out infinite;
+}
+
+@keyframes mascot-wave {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(-16deg);
+  }
+}
+
+@keyframes mascot-twinkle {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mascot-arm-wave,
+  .mascot-sparkle {
+    animation: none;
+  }
+}
+
+/* ---------- Celebrations ---------- */
+/* CSS-only confetti burst + a smaller sparkle pop (public/js/celebrate.js).
+   Every piece is positioned/animated purely with randomized custom
+   properties set from JS; nothing here needs per-call styles. */
+
+.celebration-host {
+  position: fixed;
+}
+
+.confetti-piece {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 9px;
+  height: 9px;
+  margin: -4px 0 0 -4px;
+  border-radius: 2px;
+  opacity: 0;
+  animation: confetti-burst var(--confetti-duration, 1300ms) ease-out forwards;
+  animation-delay: var(--confetti-delay, 0ms);
+}
+
+.confetti-round {
+  border-radius: 50%;
+}
+
+.confetti-teal {
+  background: var(--teal);
+}
+
+.confetti-yellow {
+  background: var(--yellow);
+}
+
+.confetti-coral {
+  background: var(--coral);
+}
+
+.confetti-white {
+  background: var(--white);
+}
+
+@keyframes confetti-burst {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0deg);
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--confetti-x, 0), var(--confetti-y, -120px)) rotate(var(--confetti-rotate, 360deg));
+  }
+}
+
+.sparkle-piece {
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: var(--yellow);
+  font-size: 1.1rem;
+  opacity: 0;
+  transform: translate(0, 0) scale(0.3);
+  animation: sparkle-pop 650ms ease-out forwards;
+  animation-delay: var(--sparkle-delay, 0ms);
+}
+
+.sparkle-piece:nth-child(even) {
+  color: var(--coral);
+}
+
+@keyframes sparkle-pop {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.3) rotate(0deg);
+  }
+  35% {
+    opacity: 1;
+    transform: translate(calc(var(--sparkle-x, 0px) * 0.6), calc(var(--sparkle-y, 0px) * 0.6)) scale(1.15)
+      rotate(20deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--sparkle-x, 0), var(--sparkle-y, 0)) scale(0.7) rotate(40deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .celebration-host {
+    display: none;
+  }
 }
 
 /* ---------- Tutorial ---------- */
@@ -444,14 +761,71 @@ main > section[hidden] {
   font-weight: 700;
 }
 
+/* Thinking mascot beside the key */
+
+.tut-key-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.tut-key-mascot {
+  flex-shrink: 0;
+}
+
+/* "Press me!" idle pulse — tutorial's own keyer instance only (#tut-keyer),
+   never the ones Learn/Play mount elsewhere. Stops for good the moment the
+   player has tried the key once (tutorial.js adds .tut-keyer-used). */
+#tut-keyer .keyer-key {
+  animation: key-pulse 2.2s ease-in-out infinite;
+}
+
+#tut-keyer.tut-keyer-used .keyer-key {
+  animation: none;
+}
+
+@keyframes key-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 209, 102, 0.55);
+  }
+  50% {
+    box-shadow: 0 0 0 14px rgba(255, 209, 102, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #tut-keyer .keyer-key {
+    animation: none;
+  }
+}
+
 @media (max-width: 480px) {
+  /* Home/sound/title/speed-picker no longer fit on one line at this width
+     — wrap onto a second (title) and third (speed picker) row instead of
+     letting them overflow or squeeze unreadably small. */
+  .app-header {
+    flex-wrap: wrap;
+    row-gap: 10px;
+  }
+
   .app-title {
+    order: -1;
+    flex-basis: 100%;
     font-size: 1.1rem;
   }
 
+  .speed-picker {
+    flex-basis: 100%;
+    justify-content: center;
+  }
+
   .speed-btn {
-    padding: 8px 8px;
+    padding: 10px 10px;
     font-size: 0.75rem;
+    min-height: 44px;
   }
 
   .keyer-key {
@@ -672,6 +1046,12 @@ main > section[hidden] {
 
 /* Lesson complete */
 
+.learn-complete-mascot {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
 .learn-complete-buttons {
   display: flex;
   flex-wrap: wrap;
@@ -751,7 +1131,7 @@ main > section[hidden] {
 }
 
 .direction-card:active {
-  transform: translateY(4px);
+  transform: translateY(4px) scale(0.98);
   box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
 }
 
@@ -793,6 +1173,23 @@ main > section[hidden] {
 
 .play-timer.play-timer-low {
   color: var(--coral);
+  animation: timer-pulse 1s ease-in-out infinite;
+}
+
+@keyframes timer-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.14);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .play-timer.play-timer-low {
+    animation: none;
+  }
 }
 
 .play-tally {
@@ -881,6 +1278,12 @@ main > section[hidden] {
   color: var(--yellow);
 }
 
+.play-result-mascot {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
 .play-results-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
@@ -917,13 +1320,32 @@ main > section[hidden] {
 }
 
 @media (max-width: 480px) {
+  .play-round-header {
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: 6px;
+  }
+
+  .play-tally {
+    text-align: center;
+  }
+
   .play-word {
     font-size: 1.7rem;
   }
 
+  .play-answer-grid {
+    grid-template-columns: repeat(auto-fill, minmax(42px, 1fr));
+    gap: 6px;
+  }
+
   .play-answer-btn {
     font-size: 0.95rem;
-    min-height: 40px;
+    /* Stay at (or above) the 44px tap-target minimum even on narrow phones
+       — this used to shrink to 40px here, which was the one spot in the
+       app under the accessible tap-target size. */
+    min-height: 44px;
+    padding: 6px 0;
   }
 }
 

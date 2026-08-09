@@ -11,8 +11,10 @@
 
 import { LESSONS, buildQueue, pickChoices } from "/lib/lessons.js";
 import { toCode } from "/lib/morse.js";
-import { playCode } from "./audio.js";
+import { playCode, playSuccessBlip, playErrorBlip } from "./audio.js";
 import { createKeyer } from "./keyerui.js";
+import { mascotSvg } from "./mascot.js";
+import { confettiBurst, sparklePop } from "./celebrate.js";
 import { getUnitMs } from "./app.js";
 
 const PROGRESS_KEY = "morse-power.learn.progress";
@@ -55,7 +57,7 @@ let lamp;
 let pickerView, lessonListEl;
 let introView, introTitleEl, introCardsEl, startBtn;
 let practiceView, progressEl, questionEl, feedbackEl;
-let completeView, completeTitleEl, completeCopyEl, nextLessonBtn;
+let completeView, completeTitleEl, completeCopyEl, completeMascotEl, nextLessonBtn;
 let views = {};
 
 // --- Practice state ---
@@ -294,8 +296,11 @@ function handleAnswer(question, correct) {
   nextBtn.focus();
 
   if (correct) {
+    playSuccessBlip();
+    sparklePop(feedbackEl);
     completedCount++;
   } else {
+    playErrorBlip();
     playAndFlash(code);
     queue.push(question);
   }
@@ -309,6 +314,7 @@ function finishLesson() {
 
   completeTitleEl.textContent = `${lesson.title} complete!`;
   completeCopyEl.textContent = `Great job! You've learned ${lesson.chars.join(", ")}.`;
+  completeMascotEl.innerHTML = mascotSvg("cheer", { size: 108 });
 
   const hasNext = currentLessonIndex + 1 < LESSONS.length;
   nextLessonBtn.hidden = !hasNext;
@@ -317,6 +323,7 @@ function finishLesson() {
   nextLessonBtn.onclick = hasNext ? () => openLessonIntro(currentLessonIndex + 1) : null;
 
   showView("complete");
+  confettiBurst(completeMascotEl);
 }
 
 export function initLearn() {
@@ -338,6 +345,7 @@ export function initLearn() {
   completeView = document.getElementById("learn-complete");
   completeTitleEl = document.getElementById("learn-complete-title");
   completeCopyEl = document.getElementById("learn-complete-copy");
+  completeMascotEl = document.getElementById("learn-complete-mascot");
   nextLessonBtn = document.getElementById("learn-next-btn");
 
   views = { picker: pickerView, intro: introView, practice: practiceView, complete: completeView };

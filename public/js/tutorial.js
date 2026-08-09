@@ -6,6 +6,7 @@
 import { MORSE, toCode, encode } from "/lib/morse.js";
 import { playCode } from "./audio.js";
 import { createKeyer } from "./keyerui.js";
+import { mascotSvg } from "./mascot.js";
 import { getUnitMs } from "./app.js";
 
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".split("");
@@ -133,10 +134,16 @@ export function initTutorial() {
 
   // --- Section 4: try the key ---
 
+  document.getElementById("tut-key-mascot").innerHTML = mascotSvg("think", { size: 64 });
+
   const committedEl = document.getElementById("tut-committed");
+  const keyerMount = document.getElementById("tut-keyer");
   let keyedSoFar = "";
 
-  createKeyer(document.getElementById("tut-keyer"), {
+  createKeyer(keyerMount, {
+    // First press stops the "press me!" idle pulse for good — once they've
+    // found the key, the hint has done its job.
+    onElement: () => keyerMount.classList.add("tut-keyer-used"),
     onLetter: (code, char) => {
       keyedSoFar += char;
       committedEl.textContent = keyedSoFar;

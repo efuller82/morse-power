@@ -1,15 +1,27 @@
-// Learn screen: progressive lessons that teach the alphabet a few
-// characters at a time, both directions — keying a letter's code, and
-// naming a letter from its code. Static HTML lives in index.html; this
-// module drives the lesson picker, lesson intro, practice loop, and
-// lesson-complete sub-views, plus localStorage completion tracking.
+// Learn screen: a continuous three-phase flashcard system covering all 36
+// characters (A-Z, then 0-9). Static HTML lives in index.html; this module
+// drives the phase-overview and the single shared "card" view that all
+// three phases render into, plus a phase-complete celebration, and the
+// per-phase localStorage completion tracking.
 //
-// State lives at module scope (rather than nested inside one init
-// function, like tutorial.js does) because app.js needs an onLearnShow()
-// hook it can call every time the Learn screen becomes visible, and that
-// hook has to share the same picker/practice state as initLearn().
+// The three phases share one deck (lib/flashcards.js's DECK) and one
+// card-run loop, differing only in how a card is rendered and what
+// happens on a wrong answer:
+//   1. practice — alphabet order, code shown on the card, wrong answers
+//      just retry the same card (the code's already visible, so there's
+//      nothing to reveal).
+//   2. test     — shuffled order, no code shown, wrong answers reveal the
+//      code (lamp + audio) then move to a different card, re-queuing the
+//      missed one to come back later.
+//   3. listen   — shuffled order, code played first, four-letter multiple
+//      choice; wrong answers behave like phase 2 (reveal + re-queue).
+//
+// State lives at module scope (same reasoning as the old learn.js/play.js)
+// because app.js needs an onLearnShow() hook it can call every time the
+// Learn screen becomes visible, and that hook has to share state with
+// initLearn().
 
-import { LESSONS, buildQueue, pickChoices } from "/lib/lessons.js";
+import { DECK, remaining, shuffled, requeue, pickListenChoices } from "/lib/flashcards.js";
 import { toCode } from "/lib/morse.js";
 import { playCode, playSuccessBlip, playErrorBlip } from "./audio.js";
 import { createKeyer } from "./keyerui.js";
@@ -17,7 +29,41 @@ import { mascotSvg } from "./mascot.js";
 import { confettiBurst, sparklePop } from "./celebrate.js";
 import { getUnitMs } from "./app.js";
 
-const PROGRESS_KEY = "morse-power.learn.progress";
+const PROGRESS_KEY = "morse-power.learn.flashcards";
+const PHASE_IDS = ["practice", "test", "listen"];
+
+// How long to hold on a revealed answer (code shown + played) before
+// auto-advancing to the next card, on top of however long the code itself
+// takes to play.
+const REVEAL_PAUSE_MS = 900;
+
+// Where a missed test/listen card lands back in the queue, relative to the
+// front — see lib/flashcards.js's requeue() for the exact rule.
+const REQUEUE_GAP = 4;
+
+const PHASE_META = [
+  {
+    id: "practice",
+    title: "1. Practice (see the code)",
+    shortTitle: "Practice",
+    desc: "The card shows the code — key it on the telegraph key.",
+    completeCopy: "You've keyed the code for every letter and number!",
+  },
+  {
+    id: "test",
+    title: "2. Test yourself",
+    shortTitle: "Test",
+    desc: "No codes this time — key each one from memory.",
+    completeCopy: "You keyed every letter and number correctly from memory!",
+  },
+  {
+    id: "listen",
+    title: "3. Listen",
+    shortTitle: "Listen",
+    desc: "Hear a code, then pick the letter it spells.",
+    completeCopy: "You matched every code by ear!",
+  },
+];
 
 function codeSymbols(code) {
   return Array.from(code)
@@ -29,11 +75,17 @@ function loadProgress() {
   try {
     const raw = localStorage.getItem(PROGRESS_KEY);
     const parsed = raw ? JSON.parse(raw) : null;
-    if (parsed && Array.isArray(parsed.completed)) return { completed: parsed.completed };
+    if (parsed && typeof parsed === "object") {
+      const progress = {};
+      for (const id of PHASE_IDS) {
+        progress[id] = Array.isArray(parsed[id]) ? parsed[id] : [];
+      }
+      return progress;
+    }
   } catch {
     // localStorage unavailable or the saved value is corrupt — start fresh.
   }
-  return { completed: [] };
+  return { practice: [], test: [], listen: [] };
 }
 
 function saveProgress(progress) {
@@ -44,29 +96,40 @@ function saveProgress(progress) {
   }
 }
 
-function markLessonCompleted(lessonId) {
+function markDone(phase, char) {
   const progress = loadProgress();
-  if (!progress.completed.includes(lessonId)) {
-    progress.completed.push(lessonId);
+  if (!progress[phase].includes(char)) {
+    progress[phase].push(char);
     saveProgress(progress);
   }
 }
 
+function clearPhaseProgress(phase) {
+  const progress = loadProgress();
+  progress[phase] = [];
+  saveProgress(progress);
+}
+
 // --- DOM refs, filled in by initLearn() ---
 let lamp;
-let pickerView, lessonListEl;
-let introView, introTitleEl, introCardsEl, startBtn;
-let practiceView, progressEl, questionEl, feedbackEl, cheatsheetEl;
-let completeView, completeTitleEl, completeCopyEl, completeMascotEl, nextLessonBtn;
+let overviewView, phaseListEl;
+let cardView, progressEl, questionEl, feedbackEl;
+let celebrateView, celebrateTitleEl, celebrateCopyEl, celebrateMascotEl;
 let views = {};
 
-// --- Practice state ---
-let currentLessonIndex = -1;
+// --- Card-run state ---
+let currentPhase = null;
 let queue = [];
-let totalQuestions = 0;
-let completedCount = 0;
 let activeKeyer = null;
 let currentPlayback = null;
+let advanceTimer = null;
+// Bumped every time we leave/restart a run, so async continuations from a
+// stale run (a reveal's setTimeout, a playback's .done) can tell they're
+// no longer relevant and quietly no-op instead of mutating state for a
+// screen the player has already left — same idea as play.js's
+// `lastResult !== result` guard, adapted for a run that has no single
+// result object to compare against.
+let runToken = 0;
 
 function cancelPlayback() {
   if (currentPlayback) {
@@ -75,9 +138,8 @@ function cancelPlayback() {
   }
 }
 
-// The keyer must never keep listening for spacebar once we've left the
-// practice question it was mounted for — destroy it eagerly rather than
-// relying only on keyerui's offsetParent visibility guard.
+// Eager teardown rather than relying only on the keyer's own visibility
+// guard — same reasoning as the old learn.js/play.js.
 function teardownKeyer() {
   if (activeKeyer) {
     activeKeyer.destroy();
@@ -85,8 +147,13 @@ function teardownKeyer() {
   }
 }
 
-// Same single-flight playback pattern as tutorial.js: audio.playCode plus a
-// lamp element that lights up in sync.
+function clearAdvanceTimer() {
+  if (advanceTimer !== null) {
+    clearTimeout(advanceTimer);
+    advanceTimer = null;
+  }
+}
+
 function playAndFlash(code) {
   cancelPlayback();
   const controller = playCode(code, getUnitMs(), {
@@ -101,176 +168,219 @@ function playAndFlash(code) {
 }
 
 function showView(name) {
-  if (name !== "practice") {
+  if (name !== "card") {
     teardownKeyer();
     cancelPlayback();
   }
-  // Practice needs every vertical pixel: the cheat sheet, prompt, and
-  // telegraph key should all fit on screen together, so the screen heading
-  // gets out of the way.
-  document.getElementById("screen-learn").classList.toggle("practicing", name === "practice");
+  // A card run needs every vertical pixel: the flashcard and the
+  // telegraph key should both fit on screen together, so the screen
+  // heading gets out of the way — same trick the old lesson practice loop
+  // used.
+  document.getElementById("screen-learn").classList.toggle("card-active", name === "card");
   for (const [key, el] of Object.entries(views)) {
     el.hidden = key !== name;
   }
 }
 
-// --- Lesson picker ---
+function hideFeedback() {
+  feedbackEl.hidden = true;
+  feedbackEl.textContent = "";
+  feedbackEl.className = "learn-feedback";
+}
 
-function renderPicker() {
+function showFeedback(kind, text) {
+  feedbackEl.hidden = false;
+  feedbackEl.className = "learn-feedback learn-feedback-" + kind;
+  feedbackEl.textContent = text;
+}
+
+// --- Overview ---
+
+function renderOverview() {
   const progress = loadProgress();
-  lessonListEl.innerHTML = "";
+  phaseListEl.innerHTML = "";
 
-  LESSONS.forEach((lesson, index) => {
-    const completed = progress.completed.includes(lesson.id);
+  PHASE_META.forEach((meta, index) => {
+    const doneCount = progress[meta.id].length;
+    const complete = doneCount >= DECK.length;
+    // Phase 2 is visually nudged once phase 1 is finished (owner: "phase 2
+    // visually suggested after phase 1") — every phase stays tappable
+    // regardless, this is just a hint about a sensible next step.
+    const previousDone = index === 0 ? true : progress[PHASE_META[index - 1].id].length >= DECK.length;
+    const suggested = previousDone && !complete && index > 0;
 
-    const card = document.createElement("button");
-    card.type = "button";
-    card.className = "lesson-card" + (completed ? " completed" : "");
+    const card = document.createElement("div");
+    card.className = "phase-card" + (complete ? " phase-card-complete" : "");
 
-    const title = document.createElement("span");
-    title.className = "lesson-card-title";
-    title.textContent = lesson.title;
+    const head = document.createElement("div");
+    head.className = "phase-card-head";
 
-    const chars = document.createElement("span");
-    chars.className = "lesson-card-chars";
-    chars.textContent = lesson.chars.join(" ");
+    const titleEl = document.createElement("span");
+    titleEl.className = "phase-card-title";
+    titleEl.textContent = meta.title;
+    head.appendChild(titleEl);
 
-    const status = document.createElement("span");
-    status.className = "lesson-card-status";
-    status.textContent = completed ? "★" : "☆";
-    status.setAttribute("aria-hidden", "true");
+    if (complete) {
+      const star = document.createElement("span");
+      star.className = "phase-card-star";
+      star.textContent = "★";
+      star.setAttribute("aria-hidden", "true");
+      head.appendChild(star);
+    }
 
-    card.append(title, chars, status);
-    card.addEventListener("click", () => openLessonIntro(index));
-    lessonListEl.appendChild(card);
+    const descEl = document.createElement("p");
+    descEl.className = "phase-card-desc";
+    descEl.textContent = meta.desc;
+
+    card.append(head, descEl);
+
+    if (suggested) {
+      const badge = document.createElement("span");
+      badge.className = "phase-card-suggested";
+      badge.textContent = "Try this next!";
+      card.appendChild(badge);
+    }
+
+    const barOuter = document.createElement("div");
+    barOuter.className = "phase-card-bar";
+    const barFill = document.createElement("div");
+    barFill.className = "phase-card-bar-fill";
+    barFill.style.width = `${Math.round((doneCount / DECK.length) * 100)}%`;
+    barOuter.appendChild(barFill);
+
+    const progressText = document.createElement("p");
+    progressText.className = "phase-card-progress";
+    progressText.textContent = `${doneCount} of ${DECK.length} done`;
+
+    const buttons = document.createElement("div");
+    buttons.className = "phase-card-buttons";
+
+    const continueBtn = document.createElement("button");
+    continueBtn.type = "button";
+    continueBtn.className = "btn btn-coral";
+    continueBtn.textContent = complete ? "Play again" : doneCount > 0 ? "Continue" : "Start";
+    continueBtn.addEventListener("click", () => startPhase(meta.id));
+    buttons.appendChild(continueBtn);
+
+    if (doneCount > 0) {
+      const resetBtn = document.createElement("button");
+      resetBtn.type = "button";
+      resetBtn.className = "phase-reset-btn";
+      resetBtn.textContent = "Start over";
+      resetBtn.addEventListener("click", () => {
+        clearPhaseProgress(meta.id);
+        renderOverview();
+      });
+      buttons.appendChild(resetBtn);
+    }
+
+    card.append(barOuter, progressText, buttons);
+    phaseListEl.appendChild(card);
   });
 }
 
-function goToPicker() {
-  renderPicker();
-  showView("picker");
+function goToOverview() {
+  runToken++;
+  clearAdvanceTimer();
+  teardownKeyer();
+  cancelPlayback();
+  currentPhase = null;
+  queue = [];
+  renderOverview();
+  showView("overview");
 }
 
-// --- Lesson intro ---
+// --- Card run ---
 
-function openLessonIntro(index) {
-  currentLessonIndex = index;
-  const lesson = LESSONS[index];
+function startPhase(phaseId) {
+  runToken++;
+  clearAdvanceTimer();
+  teardownKeyer();
+  cancelPlayback();
 
-  introTitleEl.textContent = lesson.title;
-  introCardsEl.innerHTML = "";
+  currentPhase = phaseId;
+  const progress = loadProgress();
+  const notDone = remaining(DECK, progress[phaseId]);
+  // Resume = skip completed cards: phase 1 continues at the first not-done
+  // character in deck order; phases 2/3 shuffle the not-done remainder.
+  queue = phaseId === "practice" ? notDone : shuffled(notDone, Math.random);
 
-  for (const char of lesson.chars) {
-    const code = toCode(char);
-
-    const card = document.createElement("div");
-    card.className = "learn-intro-card";
-
-    const charEl = document.createElement("span");
-    charEl.className = "learn-intro-char";
-    charEl.textContent = char;
-
-    const codeEl = document.createElement("span");
-    codeEl.className = "learn-intro-code";
-    codeEl.textContent = codeSymbols(code);
-
-    const playBtn = document.createElement("button");
-    playBtn.type = "button";
-    playBtn.className = "learn-intro-play";
-    playBtn.setAttribute("aria-label", `Play the code for ${char}`);
-    playBtn.textContent = "▶ Play";
-    playBtn.addEventListener("click", () => playAndFlash(code));
-
-    card.append(charEl, codeEl, playBtn);
-    introCardsEl.appendChild(card);
-  }
-
-  showView("intro");
-}
-
-// --- Practice loop ---
-
-function startPractice() {
-  queue = buildQueue(currentLessonIndex);
-  totalQuestions = queue.length;
-  completedCount = 0;
-  const queueChars = new Set(queue.map((q) => q.char));
-  renderCheatsheet(
-    LESSONS.flatMap((lesson) => lesson.chars).filter((c) => queueChars.has(c))
-  );
-  showView("practice");
+  showView("card");
   askNext();
 }
 
-// The reference key for this practice run: every character the queue can
-// ask about, with its code underneath. Shown during key-questions (owner
-// request: the key and the telegraph button must be visible at the same
-// time) and hidden during hear-questions, where it would give the
-// multiple-choice answer away.
-function renderCheatsheet(chars) {
-  cheatsheetEl.innerHTML = "";
-  for (const char of chars) {
-    const cell = document.createElement("div");
-    cell.className = "learn-cheat-cell";
-    const charEl = document.createElement("span");
-    charEl.className = "learn-cheat-char";
-    charEl.textContent = char;
-    const codeEl = document.createElement("span");
-    codeEl.className = "learn-cheat-code";
-    codeEl.textContent = codeSymbols(toCode(char));
-    cell.append(charEl, codeEl);
-    cheatsheetEl.appendChild(cell);
-  }
-}
-
 function askNext() {
+  clearAdvanceTimer();
   teardownKeyer();
   cancelPlayback();
-  feedbackEl.hidden = true;
-  feedbackEl.innerHTML = "";
-  feedbackEl.className = "learn-feedback";
+  hideFeedback();
 
   if (queue.length === 0) {
-    finishLesson();
+    showCelebration();
     return;
   }
 
-  const question = queue.shift();
-  progressEl.textContent = `${completedCount + 1} of ${totalQuestions}`;
+  const progress = loadProgress();
+  progressEl.textContent = `${progress[currentPhase].length} of ${DECK.length}`;
 
-  if (question.direction === "key") {
-    renderKeyQuestion(question);
-  } else {
-    renderHearQuestion(question);
-  }
+  questionEl.innerHTML = "";
+  const char = queue[0];
+  if (currentPhase === "practice") renderPracticeCard(char);
+  else if (currentPhase === "test") renderTestCard(char);
+  else renderListenCard(char);
 }
 
-function renderKeyQuestion(question) {
-  cheatsheetEl.hidden = false;
-  questionEl.innerHTML = "";
+function renderPracticeCard(char) {
+  const card = document.createElement("div");
+  card.className = "flash-card";
 
-  const sendLine = document.createElement("p");
-  sendLine.className = "learn-send-line";
-  sendLine.append("Send: ");
-  const bigChar = document.createElement("span");
-  bigChar.className = "learn-big-char";
-  bigChar.textContent = question.char;
-  sendLine.appendChild(bigChar);
+  const charEl = document.createElement("span");
+  charEl.className = "flash-card-char";
+  charEl.textContent = char;
+
+  const codeEl = document.createElement("span");
+  codeEl.className = "flash-card-code";
+  codeEl.textContent = codeSymbols(toCode(char));
+
+  card.append(charEl, codeEl);
 
   const keyerMount = document.createElement("div");
   keyerMount.className = "learn-keyer-mount";
 
-  questionEl.append(sendLine, keyerMount);
+  questionEl.append(card, keyerMount);
 
   activeKeyer = createKeyer(keyerMount, {
-    onLetter: (code) => handleAnswer(question, code === toCode(question.char)),
+    onLetter: (code) => {
+      if (code === toCode(char)) handleCorrect(char);
+      else handlePracticeWrong();
+    },
   });
 }
 
-function renderHearQuestion(question) {
-  cheatsheetEl.hidden = true;
-  questionEl.innerHTML = "";
-  const code = toCode(question.char);
+function renderTestCard(char) {
+  const card = document.createElement("div");
+  card.className = "flash-card";
+
+  const charEl = document.createElement("span");
+  charEl.className = "flash-card-char";
+  charEl.textContent = char;
+  card.appendChild(charEl);
+
+  const keyerMount = document.createElement("div");
+  keyerMount.className = "learn-keyer-mount";
+
+  questionEl.append(card, keyerMount);
+
+  activeKeyer = createKeyer(keyerMount, {
+    onLetter: (code) => {
+      if (code === toCode(char)) handleCorrect(char);
+      else handleQuizWrong(char);
+    },
+  });
+}
+
+function renderListenCard(char) {
+  const code = toCode(char);
 
   const prompt = document.createElement("p");
   prompt.className = "learn-send-line";
@@ -285,7 +395,7 @@ function renderHearQuestion(question) {
   const choicesEl = document.createElement("div");
   choicesEl.className = "learn-choices";
 
-  for (const choice of pickChoices(question.char, currentLessonIndex)) {
+  for (const choice of pickListenChoices(char, 4, Math.random)) {
     const choiceBtn = document.createElement("button");
     choiceBtn.type = "button";
     choiceBtn.className = "learn-choice-btn";
@@ -294,7 +404,15 @@ function renderHearQuestion(question) {
       for (const btn of choicesEl.querySelectorAll(".learn-choice-btn")) {
         btn.disabled = true;
       }
-      handleAnswer(question, choice === question.char);
+      if (choice === char) {
+        handleCorrect(char);
+        return;
+      }
+      choiceBtn.classList.add("learn-choice-wrong");
+      for (const btn of choicesEl.querySelectorAll(".learn-choice-btn")) {
+        if (btn.textContent === char) btn.classList.add("learn-choice-correct");
+      }
+      handleQuizWrong(char);
     });
     choicesEl.appendChild(choiceBtn);
   }
@@ -303,98 +421,97 @@ function renderHearQuestion(question) {
   playAndFlash(code);
 }
 
-function handleAnswer(question, correct) {
-  // Stop accepting more key input the instant this question is answered.
+// Correct on any phase: blip + sparkle, mark the character done, drop it
+// off the front of the queue, move on.
+function handleCorrect(char) {
   teardownKeyer();
-  const code = toCode(question.char);
-
-  feedbackEl.hidden = false;
-  feedbackEl.className = "learn-feedback " + (correct ? "learn-feedback-good" : "learn-feedback-bad");
-
-  const message = document.createElement("p");
-  message.className = "learn-feedback-message";
-  message.textContent = correct
-    ? `Yes! ${codeSymbols(code)} is ${question.char}`
-    : `Not quite — ${codeSymbols(code)} is ${question.char}. Listen again:`;
-  feedbackEl.appendChild(message);
-
-  const nextBtn = document.createElement("button");
-  nextBtn.type = "button";
-  nextBtn.className = "btn btn-coral";
-  nextBtn.textContent = "Next";
-  nextBtn.addEventListener("click", askNext);
-  feedbackEl.appendChild(nextBtn);
-  nextBtn.focus();
-
-  if (correct) {
-    playSuccessBlip();
-    sparklePop(feedbackEl);
-    completedCount++;
-  } else {
-    playErrorBlip();
-    playAndFlash(code);
-    queue.push(question);
-  }
+  playSuccessBlip();
+  sparklePop(questionEl);
+  markDone(currentPhase, char);
+  queue.shift();
+  askNext();
 }
 
-// --- Lesson complete ---
+// Phase 1 wrong: the code is already on the card, so there's nothing to
+// reveal — just a gentle nudge. The same card (and the same keyer
+// instance) stays put so the player can retry immediately.
+function handlePracticeWrong() {
+  playErrorBlip();
+  showFeedback("bad", "Not quite — try again!");
+}
 
-function finishLesson() {
-  const lesson = LESSONS[currentLessonIndex];
-  markLessonCompleted(lesson.id);
+// Phase 2/3 wrong: reveal the code (lamp + audio), then move to a
+// different card once the reveal has had time to sink in. The missed
+// character comes off the front of the queue and gets re-queued a few
+// cards later, rather than being retried immediately — a post-reveal
+// retry is not how this character gets marked done.
+function handleQuizWrong(char) {
+  const token = runToken;
+  playErrorBlip();
+  teardownKeyer();
+  queue.shift();
 
-  completeTitleEl.textContent = `${lesson.title} complete!`;
-  completeCopyEl.textContent = `Great job! You've learned ${lesson.chars.join(", ")}.`;
-  completeMascotEl.innerHTML = mascotSvg("cheer", { size: 108 });
+  const code = toCode(char);
+  showFeedback("bad", `Not quite — ${char} is ${codeSymbols(code)}`);
+  const controller = playAndFlash(code);
 
-  const hasNext = currentLessonIndex + 1 < LESSONS.length;
-  nextLessonBtn.hidden = !hasNext;
-  // Assigning .onclick (rather than addEventListener) keeps this idempotent
-  // across repeated lesson completions in one session — no listeners pile up.
-  nextLessonBtn.onclick = hasNext ? () => openLessonIntro(currentLessonIndex + 1) : null;
+  controller.done.then(() => {
+    if (token !== runToken) return;
+    advanceTimer = setTimeout(() => {
+      if (token !== runToken) return;
+      advanceTimer = null;
+      queue = requeue(queue, char, REQUEUE_GAP, Math.random);
+      askNext();
+    }, REVEAL_PAUSE_MS);
+  });
+}
 
-  showView("complete");
-  confettiBurst(completeMascotEl);
+// --- Phase complete ---
+
+function showCelebration() {
+  clearAdvanceTimer();
+  teardownKeyer();
+  cancelPlayback();
+
+  const meta = PHASE_META.find((p) => p.id === currentPhase);
+  celebrateTitleEl.textContent = `${meta.shortTitle} complete!`;
+  celebrateCopyEl.textContent = meta.completeCopy;
+  celebrateMascotEl.innerHTML = mascotSvg("cheer", { size: 108 });
+
+  showView("celebrate");
+  confettiBurst(celebrateMascotEl);
 }
 
 export function initLearn() {
   lamp = document.getElementById("learn-lamp");
 
-  pickerView = document.getElementById("learn-picker");
-  lessonListEl = document.getElementById("learn-lesson-list");
+  overviewView = document.getElementById("learn-overview");
+  phaseListEl = document.getElementById("learn-phase-list");
 
-  introView = document.getElementById("learn-intro");
-  introTitleEl = document.getElementById("learn-intro-title");
-  introCardsEl = document.getElementById("learn-intro-cards");
-  startBtn = document.getElementById("learn-start-btn");
-
-  practiceView = document.getElementById("learn-practice");
+  cardView = document.getElementById("learn-card");
   progressEl = document.getElementById("learn-progress");
   questionEl = document.getElementById("learn-question");
   feedbackEl = document.getElementById("learn-feedback");
-  cheatsheetEl = document.getElementById("learn-cheatsheet");
 
-  completeView = document.getElementById("learn-complete");
-  completeTitleEl = document.getElementById("learn-complete-title");
-  completeCopyEl = document.getElementById("learn-complete-copy");
-  completeMascotEl = document.getElementById("learn-complete-mascot");
-  nextLessonBtn = document.getElementById("learn-next-btn");
+  celebrateView = document.getElementById("learn-celebrate");
+  celebrateTitleEl = document.getElementById("learn-celebrate-title");
+  celebrateCopyEl = document.getElementById("learn-celebrate-copy");
+  celebrateMascotEl = document.getElementById("learn-celebrate-mascot");
 
-  views = { picker: pickerView, intro: introView, practice: practiceView, complete: completeView };
+  views = { overview: overviewView, card: cardView, celebrate: celebrateView };
 
-  startBtn.addEventListener("click", startPractice);
-  for (const btn of document.querySelectorAll('#screen-learn [data-learn-back="picker"]')) {
-    btn.addEventListener("click", goToPicker);
+  for (const btn of document.querySelectorAll('#screen-learn [data-learn-back="overview"]')) {
+    btn.addEventListener("click", goToOverview);
   }
 
-  renderPicker();
-  showView("picker");
+  renderOverview();
+  showView("overview");
 }
 
 // Called by app.js whenever the outer router navigates to the Learn screen
-// — always land on the lesson picker (with freshly reloaded stars) rather
-// than wherever a previous visit left off, and make sure any in-progress
-// practice question's keyer/audio is torn down.
+// — always land on the overview (with freshly reloaded progress counts)
+// rather than wherever a previous visit left off, and make sure any
+// in-progress card's keyer/audio/timers are torn down.
 export function onLearnShow() {
-  goToPicker();
+  goToOverview();
 }

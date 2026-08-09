@@ -861,242 +861,6 @@ main > section[hidden] {
   }
 }
 
-/* ---------- Learn ---------- */
-
-/* Learn has real content now (unlike the still-placeholder Play screen it
-   shares a base rule with) — left-align it like the Tutorial screen. */
-#screen-learn {
-  text-align: left;
-}
-
-.learn-view[hidden] {
-  display: none !important;
-}
-
-.learn-view h3 {
-  color: var(--yellow);
-}
-
-.learn-intro-copy {
-  color: var(--white);
-}
-
-/* Lesson picker */
-
-.lesson-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 16px;
-  margin-top: 16px;
-}
-
-.lesson-card {
-  border: none;
-  border-radius: var(--radius-lg);
-  background: var(--navy-light);
-  color: var(--white);
-  padding: 20px 16px;
-  min-height: 120px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  text-align: center;
-  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
-}
-
-.lesson-card:active {
-  transform: translateY(2px);
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
-}
-
-.lesson-card.completed {
-  border: 2px solid var(--teal);
-}
-
-.lesson-card-title {
-  font-size: 1.1rem;
-  font-weight: 800;
-}
-
-.lesson-card-chars {
-  color: var(--yellow);
-  letter-spacing: 0.1em;
-}
-
-.lesson-card-status {
-  font-size: 1.4rem;
-}
-
-.lesson-card.completed .lesson-card-status {
-  color: var(--teal);
-}
-
-/* Lesson intro */
-
-.learn-card-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 14px;
-  margin: 16px 0 28px;
-}
-
-.learn-intro-card {
-  background: var(--navy-light);
-  border-radius: var(--radius-md);
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-}
-
-.learn-intro-char {
-  font-size: 1.8rem;
-  font-weight: 800;
-}
-
-.learn-intro-code {
-  color: var(--yellow);
-  letter-spacing: 0.15em;
-  font-size: 1.1rem;
-}
-
-.learn-intro-play {
-  border: none;
-  border-radius: var(--radius-sm);
-  background: var(--teal);
-  color: var(--navy);
-  font-weight: 700;
-  padding: 10px 16px;
-  min-height: 44px;
-}
-
-.learn-start-btn {
-  display: block;
-  margin: 8px auto 0;
-  font-size: 1.15rem;
-  padding: 16px 28px;
-}
-
-/* Practice loop */
-
-.learn-practice-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.learn-progress {
-  font-weight: 700;
-  color: var(--yellow);
-  font-size: 1.1rem;
-}
-
-.learn-question {
-  background: var(--navy-light);
-  border-radius: var(--radius-lg);
-  padding: 28px 20px;
-  text-align: center;
-}
-
-.learn-send-line {
-  font-size: 1.2rem;
-  color: var(--yellow);
-  margin-bottom: 20px;
-}
-
-.learn-big-char {
-  font-size: 3.2rem;
-  font-weight: 800;
-  color: var(--white);
-}
-
-.learn-keyer-mount {
-  margin-top: 4px;
-}
-
-.learn-replay-btn {
-  display: block;
-  margin: 0 auto 20px;
-}
-
-.learn-choices {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-  gap: 14px;
-  max-width: 420px;
-  margin: 0 auto;
-}
-
-.learn-choice-btn {
-  border: none;
-  border-radius: var(--radius-md);
-  background: var(--white);
-  color: var(--navy);
-  font-size: 1.6rem;
-  font-weight: 800;
-  padding: 20px 0;
-  min-height: 72px;
-}
-
-.learn-choice-btn:active {
-  transform: translateY(2px);
-}
-
-.learn-choice-btn:disabled {
-  opacity: 0.6;
-  cursor: default;
-}
-
-.learn-feedback {
-  margin-top: 24px;
-  text-align: center;
-}
-
-.learn-feedback-message {
-  font-size: 1.2rem;
-  font-weight: 700;
-  margin-bottom: 14px;
-}
-
-.learn-feedback-good .learn-feedback-message {
-  color: var(--teal);
-}
-
-.learn-feedback-bad .learn-feedback-message {
-  color: var(--coral);
-}
-
-/* Lesson complete */
-
-.learn-complete-mascot {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 4px;
-}
-
-.learn-complete-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 16px;
-}
-
-@media (max-width: 480px) {
-  .learn-big-char {
-    font-size: 2.4rem;
-  }
-
-  .learn-choice-btn {
-    font-size: 1.3rem;
-    padding: 16px 0;
-  }
-}
-
 /* ---------- Sound toggle ---------- */
 
 .sound-btn {
@@ -1533,55 +1297,6 @@ main > section[hidden] {
   }
 }
 
-/* ---------- Learn cheat sheet ---------- */
-
-.learn-cheatsheet {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px;
-  margin: 4px 0 14px;
-}
-
-.learn-cheat-cell {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  background: var(--navy-lighter);
-  border-radius: var(--radius-sm);
-  padding: 6px 12px;
-}
-
-.learn-cheat-char {
-  font-size: 1.1rem;
-  font-weight: 800;
-}
-
-.learn-cheat-code {
-  font-size: 0.72rem;
-  color: var(--yellow);
-  letter-spacing: 0.06em;
-}
-
-/* Practice mode reclaims vertical space so the cheat sheet, prompt, and
-   telegraph key fit on screen together. */
-#screen-learn.practicing > h2 {
-  display: none;
-}
-
-#screen-learn.practicing .lamp-row {
-  padding-bottom: 4px;
-}
-
-#screen-learn.practicing .learn-question {
-  padding: 14px 20px;
-}
-
-#screen-learn.practicing .learn-send-line {
-  margin-bottom: 8px;
-}
-
 /* ---------- Tutorial reference key ---------- */
 
 .tut-key-row {
@@ -1635,4 +1350,280 @@ main > section[hidden] {
 .tut-clear-btn {
   padding: 10px 22px;
   font-size: 0.95rem;
+}
+
+/* ---------- Learn (flashcards) ---------- */
+/* Three-phase flashcard system (public/js/learn.js): an overview of phase
+   cards, then a single-card-at-a-time run shared by all three phases
+   (Practice/Test/Listen render different content inside the same
+   .learn-question shell), then a celebration screen on completion. */
+
+#screen-learn {
+  text-align: left;
+}
+
+.learn-view[hidden] {
+  display: none !important;
+}
+
+.learn-intro-copy {
+  color: var(--white);
+}
+
+/* Overview: one card per phase */
+
+.phase-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 18px;
+  margin-top: 16px;
+}
+
+.phase-card {
+  background: var(--navy-light);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
+}
+
+.phase-card-complete {
+  border: 2px solid var(--teal);
+}
+
+.phase-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.phase-card-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--white);
+}
+
+.phase-card-star {
+  font-size: 1.3rem;
+  color: var(--teal);
+}
+
+.phase-card-desc {
+  color: #9fb0d0;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.phase-card-suggested {
+  align-self: flex-start;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--navy);
+  background: var(--yellow);
+  border-radius: var(--radius-sm);
+  padding: 2px 8px;
+}
+
+.phase-card-bar {
+  height: 10px;
+  border-radius: 6px;
+  background: var(--navy-lighter);
+  overflow: hidden;
+}
+
+.phase-card-bar-fill {
+  height: 100%;
+  background: var(--teal);
+  border-radius: 6px;
+}
+
+.phase-card-progress {
+  font-size: 0.85rem;
+  color: var(--yellow);
+  margin: 0;
+}
+
+.phase-card-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.phase-reset-btn {
+  border: none;
+  background: transparent;
+  color: #9fb0d0;
+  font-size: 0.85rem;
+  text-decoration: underline;
+  padding: 8px 4px;
+  min-height: 44px;
+}
+
+.phase-reset-btn:hover {
+  color: var(--white);
+}
+
+/* Card run — header + shared question shell */
+
+.learn-practice-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.learn-progress {
+  font-weight: 700;
+  color: var(--yellow);
+  font-size: 1.1rem;
+}
+
+.learn-question {
+  background: var(--navy-light);
+  border-radius: var(--radius-lg);
+  padding: 28px 20px;
+  text-align: center;
+}
+
+.flash-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.flash-card-char {
+  font-size: 3.6rem;
+  font-weight: 800;
+  color: var(--white);
+}
+
+.flash-card-code {
+  font-size: 1.4rem;
+  color: var(--yellow);
+  letter-spacing: 0.2em;
+}
+
+.learn-keyer-mount {
+  margin-top: 4px;
+}
+
+.learn-send-line {
+  font-size: 1.2rem;
+  color: var(--yellow);
+  margin-bottom: 20px;
+}
+
+.learn-replay-btn {
+  display: block;
+  margin: 0 auto 20px;
+}
+
+.learn-choices {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  gap: 14px;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.learn-choice-btn {
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--navy);
+  font-size: 1.6rem;
+  font-weight: 800;
+  padding: 20px 0;
+  min-height: 72px;
+}
+
+.learn-choice-btn:active {
+  transform: translateY(2px);
+}
+
+.learn-choice-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.learn-choice-btn.learn-choice-correct {
+  outline: 3px solid var(--teal);
+  outline-offset: -3px;
+}
+
+.learn-choice-btn.learn-choice-wrong {
+  outline: 3px solid var(--coral);
+  outline-offset: -3px;
+}
+
+.learn-feedback {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.learn-feedback-good {
+  color: var(--teal);
+}
+
+.learn-feedback-bad {
+  color: var(--coral);
+}
+
+/* Card run reclaims vertical space so the question and telegraph key fit
+   on screen together without scrolling — same trick the old lesson
+   practice loop used. */
+#screen-learn.card-active > h2 {
+  display: none;
+}
+
+#screen-learn.card-active .lamp-row {
+  padding-bottom: 4px;
+}
+
+#screen-learn.card-active .learn-question {
+  padding: 16px 20px;
+}
+
+#screen-learn.card-active .flash-card {
+  margin-bottom: 12px;
+}
+
+/* Phase-complete celebration */
+
+.learn-complete-mascot {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.learn-complete-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+@media (max-width: 480px) {
+  .flash-card-char {
+    font-size: 2.6rem;
+  }
+
+  .learn-choice-btn {
+    font-size: 1.3rem;
+    padding: 16px 0;
+  }
+
+  .phase-grid {
+    grid-template-columns: 1fr;
+  }
 }

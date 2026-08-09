@@ -11,8 +11,10 @@ The complete MVP. `node server.js` → http://localhost:3000:
 - **Tutorial** — what Morse is, extensive unit-timing teaching with a
   visual diagram and hear-it buttons, full A–Z 0–9 chart with audio + lamp
   playback, live practice telegraph key (mouse/touch/spacebar).
-- **Learn** — seven lessons covering all 36 characters, practicing both
-  directions with review mixing; completion stars persist in localStorage.
+- **Learn** — three-phase flashcards over all 36 characters: Practice
+  (code showing, same card until keyed right), Test (no code; a miss
+  reveals the answer and the card comes back later), and Listen (hear the
+  code, pick the letter). Per-phase progress persists in localStorage.
 - **Play** — 60-second scored rounds, "Send it!" (key the shown character)
   or "Catch it!" (hear/watch code, answer by keyboard or letter grid);
   prompts come from an endless random word stream so rounds can't be
@@ -47,6 +49,9 @@ requires both CI checks.
   fit on screen at once (#18), the Tutorial's "Try the key!" block shows
   the full 36-character reference key beside the telegraph key (#20), and
   a Clear button resets the Tutorial's "You keyed:" line (#22).
+- Owner then replaced the lesson-based Learn mode wholesale with the
+  three-phase flashcard system (#24) — the #18 cheat sheet went with it
+  (phase 1 shows the code on the card itself).
 
 ## Next
 

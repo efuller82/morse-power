@@ -1,0 +1,461 @@
+/* Morse Power — shared theme. Vanilla CSS, no build step, no external assets. */
+
+:root {
+  --navy: #1b2a4a;
+  --navy-light: #24365e;
+  --navy-lighter: #2e4372;
+  --yellow: #ffd166;
+  --teal: #06d6a0;
+  --coral: #ef476f;
+  --white: #ffffff;
+  --radius-lg: 22px;
+  --radius-md: 14px;
+  --radius-sm: 8px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--navy);
+  color: var(--white);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0 0 0.5em;
+}
+
+p {
+  margin: 0 0 0.75em;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* ---------- Header ---------- */
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--navy-light);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.home-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: none;
+  background: var(--yellow);
+  color: var(--navy);
+  flex-shrink: 0;
+}
+
+.home-btn:hover {
+  filter: brightness(1.08);
+}
+
+.app-title {
+  font-size: 1.4rem;
+  letter-spacing: 0.04em;
+  text-align: center;
+  flex: 1;
+}
+
+.speed-picker {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.speed-btn {
+  border: 2px solid var(--navy-lighter);
+  background: transparent;
+  color: var(--white);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.speed-btn[aria-pressed="true"] {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: var(--navy);
+}
+
+/* ---------- Layout ---------- */
+
+main {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px 16px 64px;
+}
+
+main > section[hidden] {
+  display: none !important;
+}
+
+.tagline {
+  text-align: center;
+  font-size: 1.1rem;
+  color: var(--yellow);
+}
+
+/* ---------- Generic buttons ---------- */
+
+.btn {
+  display: inline-block;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 14px 22px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--navy);
+  background: var(--white);
+}
+
+.btn-teal {
+  background: var(--teal);
+}
+
+.btn-coral {
+  background: var(--coral);
+  color: var(--white);
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* ---------- Home screen ---------- */
+
+.home-modes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+  margin-top: 24px;
+}
+
+.mode-card {
+  border: none;
+  border-radius: var(--radius-lg);
+  padding: 32px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+  color: var(--navy);
+  min-height: 140px;
+  justify-content: center;
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.2);
+}
+
+.mode-card:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
+}
+
+.mode-card-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+}
+
+.mode-card-desc {
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.mode-tutorial {
+  background: var(--teal);
+}
+
+.mode-learn {
+  background: var(--yellow);
+}
+
+.mode-play {
+  background: var(--coral);
+  color: var(--white);
+}
+
+/* ---------- Coming soon screens ---------- */
+
+.coming-soon {
+  font-size: 1.4rem;
+  color: var(--yellow);
+  margin-top: 24px;
+}
+
+#screen-learn,
+#screen-play {
+  text-align: center;
+}
+
+/* ---------- Tutorial ---------- */
+
+.tut-block {
+  background: var(--navy-light);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.tut-block h3 {
+  color: var(--yellow);
+}
+
+.tut-caption {
+  font-weight: 600;
+  color: var(--yellow);
+}
+
+.tut-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.lamp-row {
+  display: flex;
+  justify-content: center;
+  padding: 8px 0 20px;
+}
+
+.lamp {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #4a5a80, #22314f);
+  border: 3px solid var(--navy-lighter);
+  transition: background 60ms ease, box-shadow 60ms ease;
+}
+
+.lamp.lit {
+  background: radial-gradient(circle at 35% 30%, #fff3cf, var(--yellow));
+  border-color: var(--yellow);
+  box-shadow: 0 0 24px 8px rgba(255, 209, 102, 0.7);
+}
+
+/* Timing diagram */
+
+.timing-diagram {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 14px;
+  padding: 12px 4px 4px;
+}
+
+.timing-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.timing-row {
+  display: flex;
+  gap: 3px;
+}
+
+.timing-block {
+  width: 16px;
+  height: 34px;
+  border-radius: 4px;
+  border: 2px solid var(--navy-lighter);
+  background: transparent;
+}
+
+.timing-block.on {
+  background: var(--teal);
+  border-color: var(--teal);
+}
+
+.timing-label {
+  font-size: 0.8rem;
+  color: var(--white);
+  text-align: center;
+  max-width: 110px;
+}
+
+.timing-gap .timing-label {
+  color: #9fb0d0;
+}
+
+/* Alphabet grid */
+
+.tut-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.tut-cell {
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--navy-lighter);
+  color: var(--white);
+  padding: 10px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.tut-cell-char {
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+
+.tut-cell-code {
+  font-size: 0.85rem;
+  color: var(--yellow);
+  letter-spacing: 0.05em;
+}
+
+.tut-cell.playing {
+  background: var(--teal);
+  color: var(--navy);
+}
+
+.tut-cell.playing .tut-cell-code {
+  color: var(--navy);
+}
+
+/* Keyer */
+
+.keyer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 0;
+}
+
+.keyer-key {
+  position: relative;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  border: 6px solid var(--navy-lighter);
+  background: var(--navy);
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+}
+
+.keyer-key .keyer-fill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 0%;
+  background: var(--teal);
+  transition: background 80ms ease;
+  pointer-events: none;
+}
+
+.keyer-key.in-dash-zone .keyer-fill {
+  background: var(--coral);
+}
+
+.keyer-key .keyer-zone-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 50%;
+  border-top: 2px dashed rgba(255, 255, 255, 0.4);
+  pointer-events: none;
+}
+
+.keyer-key .keyer-zone-label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--white);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+
+.keyer-key.active {
+  border-color: var(--yellow);
+}
+
+.keyer-readout {
+  font-size: 1.5rem;
+  letter-spacing: 0.15em;
+  min-height: 2em;
+  text-align: center;
+}
+
+.keyer-readout-label {
+  color: var(--yellow);
+  font-size: 1rem;
+  letter-spacing: normal;
+  margin-right: 6px;
+}
+
+.tut-readout {
+  font-size: 1.3rem;
+  text-align: center;
+  min-height: 1.6em;
+  letter-spacing: 0.05em;
+}
+
+#tut-committed {
+  color: var(--teal);
+  font-weight: 700;
+}
+
+@media (max-width: 480px) {
+  .app-title {
+    font-size: 1.1rem;
+  }
+
+  .speed-btn {
+    padding: 8px 8px;
+    font-size: 0.75rem;
+  }
+
+  .keyer-key {
+    width: 150px;
+    height: 150px;
+  }
+}

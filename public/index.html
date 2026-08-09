@@ -4,33 +4,142 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Morse Power</title>
-    <style>
-      body {
-        font-family: system-ui, sans-serif;
-        display: grid;
-        place-items: center;
-        min-height: 100vh;
-        margin: 0;
-        background: #1b2a4a;
-        color: #ffd166;
-        text-align: center;
-      }
-      h1 {
-        font-size: 3rem;
-        letter-spacing: 0.05em;
-      }
-      .code {
-        font-size: 2rem;
-        letter-spacing: 0.3em;
-        color: #06d6a0;
-      }
-    </style>
+    <link rel="stylesheet" href="/style.css" />
   </head>
   <body>
+    <header class="app-header">
+      <button id="home-btn" class="home-btn" type="button" data-goto="home" aria-label="Go home">
+        <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true" focusable="false">
+          <path
+            d="M3 11.5 12 4l9 7.5M5.5 10v9a1 1 0 0 0 1 1H10v-6h4v6h3.5a1 1 0 0 0 1-1v-9"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </button>
+
+      <h1 class="app-title">Morse Power</h1>
+
+      <div class="speed-picker" id="speed-picker" role="group" aria-label="Keying speed">
+        <button type="button" class="speed-btn" data-speed="slow">Slow</button>
+        <button type="button" class="speed-btn" data-speed="medium">Medium</button>
+        <button type="button" class="speed-btn" data-speed="fast">Fast</button>
+      </div>
+    </header>
+
     <main>
-      <h1>Morse Power</h1>
-      <p class="code">▄▄ ▄▄▄ ▄▄▄ ▄ ▄ &nbsp; (that spells M O R S E)</p>
-      <p>The game is under construction — check back soon!</p>
+      <section id="screen-home" data-screen="home">
+        <p class="tagline">Learn to send secret messages with light and sound!</p>
+        <div class="home-modes">
+          <button type="button" class="mode-card mode-tutorial" data-goto="tutorial">
+            <span class="mode-card-title">Tutorial</span>
+            <span class="mode-card-desc">Learn how Morse code works</span>
+          </button>
+          <button type="button" class="mode-card mode-learn" data-goto="learn">
+            <span class="mode-card-title">Learn</span>
+            <span class="mode-card-desc">Practice letters a few at a time</span>
+          </button>
+          <button type="button" class="mode-card mode-play" data-goto="play">
+            <span class="mode-card-title">Play</span>
+            <span class="mode-card-desc">Race the clock for a high score</span>
+          </button>
+        </div>
+      </section>
+
+      <section id="screen-tutorial" data-screen="tutorial" hidden>
+        <h2>Tutorial</h2>
+        <div class="lamp-row">
+          <div id="tut-lamp" class="lamp" aria-hidden="true"></div>
+        </div>
+
+        <section class="tut-block" id="tut-what-is">
+          <h3>What is Morse code?</h3>
+          <p>
+            Morse code is a secret way to send letters using short and long
+            signals called dots (dits) and dashes (dahs).
+          </p>
+          <p>
+            You can hear Morse code as beeps, see it as flashes of light, or
+            write it down on paper as dots and dashes.
+          </p>
+          <p>
+            Once you know the code, you can send a message with almost
+            anything that can blink, beep, or click!
+          </p>
+        </section>
+
+        <section class="tut-block" id="tut-timing">
+          <h3>The secret is timing</h3>
+          <p>
+            Every dot and dash is built from a tiny unit of time. A
+            <strong>dot (dit)</strong> is just 1 unit of sound. A
+            <strong>dash (dah)</strong> is 3 units of sound &mdash; three
+            times as long!
+          </p>
+          <p>
+            Inside one letter, there's a 1-unit pause between the beeps.
+            Between letters, the pause is 3 units. Between whole words, it's
+            an extra-long 7-unit pause. Listen and watch the lamp above to
+            feel the difference.
+          </p>
+          <p class="tut-caption">The word &ldquo;ME&rdquo;:</p>
+          <div id="tut-timing-diagram" class="timing-diagram"></div>
+          <div class="tut-buttons">
+            <button type="button" class="btn btn-teal" data-tut-play="dot">Hear a dot</button>
+            <button type="button" class="btn btn-teal" data-tut-play="dash">Hear a dash</button>
+            <button type="button" class="btn btn-teal" data-tut-play="m">Hear M</button>
+            <button type="button" class="btn btn-teal" data-tut-play="me">Hear ME</button>
+          </div>
+        </section>
+
+        <section class="tut-block" id="tut-alphabet">
+          <h3>Every letter and number</h3>
+          <p>Tap any letter or number to hear it and watch it light up.</p>
+          <div id="tut-grid" class="tut-grid"></div>
+        </section>
+
+        <section class="tut-block" id="tut-key">
+          <h3>Try the key!</h3>
+          <p>
+            Hold the key: a quick tap makes a dit ●, holding it makes a dah
+            ▬. Pause for a moment to finish a letter.
+          </p>
+          <div id="tut-keyer" class="tut-keyer-mount"></div>
+          <p class="tut-readout">You keyed: <span id="tut-committed"></span></p>
+        </section>
+
+        <section class="tut-block" id="tut-how-to-play">
+          <h3>How to play</h3>
+          <p>
+            <strong>Learn</strong> teaches you the alphabet a few letters at
+            a time. Each short lesson works both ways &mdash; keying the code
+            for a letter, and listening to code to name the letter &mdash;
+            until the new letters feel like old friends.
+          </p>
+          <p>
+            <strong>Play</strong> puts 60 seconds on the clock. Translate as
+            many letters as you can before time runs out. The fastest,
+            most accurate players land on the top-10 high score list!
+          </p>
+        </section>
+      </section>
+
+      <section id="screen-learn" data-screen="learn" hidden>
+        <h2>Learn</h2>
+        <p class="coming-soon">Coming soon!</p>
+        <button type="button" class="btn btn-teal" data-goto="home">Back home</button>
+      </section>
+
+      <section id="screen-play" data-screen="play" hidden>
+        <h2>Play</h2>
+        <p class="coming-soon">Coming soon!</p>
+        <button type="button" class="btn btn-teal" data-goto="home">Back home</button>
+      </section>
     </main>
+
+    <script type="module" src="/js/app.js"></script>
   </body>
 </html>

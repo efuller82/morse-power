@@ -323,7 +323,12 @@ function renderOverview() {
         : doneCount > 0
           ? "Continue"
           : "Start";
-    continueBtn.addEventListener("click", () => startPhase(meta.id));
+    continueBtn.addEventListener("click", () => {
+      // "Play again" on a finished phase means a fresh run — without this,
+      // resuming an empty deck jumps straight to the celebration screen.
+      if (complete && !isStreak) clearPhaseProgress(meta.id);
+      startPhase(meta.id);
+    });
     buttons.appendChild(continueBtn);
 
     if (doneCount > 0) {

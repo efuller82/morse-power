@@ -56,6 +56,10 @@ requires both CI checks.
   (phase 1 shows the code on the card itself) — and added a fourth
   Streak phase (#26): climb the deck in order, a miss restarts the run,
   best streak persisted.
+- Learn card runs now fit the viewport (#28): lamp floats in the corner
+  during runs, card/keyer spacing tightened; also fixed "Play again" on a
+  completed phase jumping straight to the celebration instead of
+  restarting.
 
 ## Next
 

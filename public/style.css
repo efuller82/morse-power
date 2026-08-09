@@ -1634,3 +1634,42 @@ main > section[hidden] {
     grid-template-columns: 1fr;
   }
 }
+
+/* Learn card runs must fit the viewport without scrolling — the owner
+   keeps finding the key/readout pushed off the bottom. Float the lamp to
+   the corner (zero flow space, still visible for Listen playback) and
+   tighten every vertical gap in the card stack. */
+#screen-learn.card-active .lamp-row {
+  position: fixed;
+  right: 14px;
+  bottom: 14px;
+  top: auto;
+  padding: 0;
+}
+
+#screen-learn.card-active .learn-question {
+  padding: 12px 20px;
+}
+
+#screen-learn.card-active .flash-card {
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+#screen-learn.card-active .flash-card-char {
+  font-size: 3rem;
+}
+
+#screen-learn.card-active .keyer {
+  padding: 4px 0;
+  gap: 8px;
+}
+
+#screen-learn.card-active .keyer-key {
+  width: 150px;
+  height: 150px;
+}
+
+#screen-learn.card-active .learn-feedback {
+  margin-top: 8px;
+}

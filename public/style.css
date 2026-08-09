@@ -1631,3 +1631,8 @@ main > section[hidden] {
   letter-spacing: 0.04em;
   white-space: nowrap;
 }
+
+.tut-clear-btn {
+  padding: 10px 22px;
+  font-size: 0.95rem;
+}

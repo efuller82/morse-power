@@ -156,7 +156,7 @@ export function initTutorial() {
   const keyerMount = document.getElementById("tut-keyer");
   let keyedSoFar = "";
 
-  createKeyer(keyerMount, {
+  const keyer = createKeyer(keyerMount, {
     // First press stops the "press me!" idle pulse for good — once they've
     // found the key, the hint has done its job.
     onElement: () => keyerMount.classList.add("tut-keyer-used"),
@@ -164,5 +164,11 @@ export function initTutorial() {
       keyedSoFar += char;
       committedEl.textContent = keyedSoFar;
     },
+  });
+
+  document.getElementById("tut-clear-btn").addEventListener("click", () => {
+    keyedSoFar = "";
+    committedEl.textContent = "";
+    keyer.reset();
   });
 }

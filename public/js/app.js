@@ -2,10 +2,12 @@
 // Entry point loaded by index.html as a module script.
 
 import { SPEEDS } from "/lib/keyer.js";
+import { setSoundOn } from "./audio.js";
 import { initTutorial } from "./tutorial.js";
 import { initLearn, onLearnShow } from "./learn.js";
 
 const SPEED_STORAGE_KEY = "morse-power.speed";
+const SOUND_STORAGE_KEY = "morse-power.sound";
 const DEFAULT_SPEED = "medium";
 const SCREEN_NAMES = ["home", "tutorial", "learn", "play"];
 
@@ -68,6 +70,36 @@ function initRouter() {
   showScreen("home");
 }
 
+function initSoundToggle() {
+  const btn = document.getElementById("sound-toggle");
+  const icon = document.getElementById("sound-icon");
+  let on = true;
+  try {
+    on = localStorage.getItem(SOUND_STORAGE_KEY) !== "off";
+  } catch {
+    // localStorage unavailable — default to sound on.
+  }
+
+  function apply() {
+    setSoundOn(on);
+    btn.setAttribute("aria-pressed", String(on));
+    icon.textContent = on ? "🔊" : "🔇";
+    btn.classList.toggle("sound-off", !on);
+  }
+
+  btn.addEventListener("click", () => {
+    on = !on;
+    try {
+      localStorage.setItem(SOUND_STORAGE_KEY, on ? "on" : "off");
+    } catch {
+      // Ignore — the choice just won't persist.
+    }
+    apply();
+  });
+
+  apply();
+}
+
 function initSpeedPicker() {
   for (const btn of document.querySelectorAll("#speed-picker [data-speed]")) {
     btn.addEventListener("click", () => setSpeed(btn.dataset.speed));
@@ -78,6 +110,7 @@ function initSpeedPicker() {
 function init() {
   initRouter();
   initSpeedPicker();
+  initSoundToggle();
   initTutorial();
   initLearn();
 }

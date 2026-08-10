@@ -160,7 +160,14 @@ function renderWord() {
     if (i < charIndex) cls += " play-word-done";
     else if (i === charIndex) cls += " play-word-current";
     span.className = cls;
-    span.textContent = ch;
+    // Catch mode is a listening guess — showing the letters would give the
+    // answer away. Caught letters stay revealed; the current one is a "?"
+    // and the rest stay hidden until the player gets to them.
+    if (direction === "send" || i < charIndex) {
+      span.textContent = ch;
+    } else {
+      span.textContent = i === charIndex ? "?" : "_";
+    }
     wordEl.appendChild(span);
   });
 }

@@ -60,6 +60,9 @@ requires both CI checks.
   during runs, card/keyer spacing tightened; also fixed "Play again" on a
   completed phase jumping straight to the celebration instead of
   restarting.
+- Play's Catch mode no longer displays the word (#30): caught letters
+  stay revealed, the current position is a "?", the rest are "_" — the
+  code must actually be decoded.
 
 ## Next
 

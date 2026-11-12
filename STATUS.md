@@ -2,7 +2,7 @@
 
 Replace this file's contents at the end of each working session. Do not append.
 
-- **Updated:** 2026-08-09 (bootstrap + full MVP + first playtest fixes)
+- **Updated:** 2026-11-11 (HOST setting for packaged builds)
 
 ## Live
 
@@ -27,48 +27,41 @@ The complete MVP. `node server.js` → http://localhost:3000:
 - **Extras** — sound on/off toggle (fully playable as silent light mode),
   speed presets, Sparky the mascot, confetti/sparkle celebrations,
   success/error blips, responsive from phone to desktop.
+- **HOST setting** — `HOST=127.0.0.1 node server.js` listens on this
+  computer only. Unset
+  (the default) it still listens on every interface, so phones on the
+  same Wi-Fi can play. Packaged builds always set it.
 
-Gate: `node --test` — 86 tests, green in CI. Branch protection on `main`
+Gate: `node --test` — 90 tests, green in CI. Branch protection on `main`
 requires both CI checks.
 
 ## This session did and learned
 
-- Bootstrapped the scaffold into public repo `efuller82/morse-power` with
-  board "Morse Power" (project 5), seven feature issues — all shipped
-  (PRs #7, #8, #9, #11, #12, #13, #14) and closed.
-- Owner requests honored mid-session: anti-memorization random word stream
-  in Play (issue #4 comment), sound toggle for silent play (issue #10).
-- Implementation was delegated to cheaper-model subagents; the main session
-  spec'd, reviewed, and merged. This worked well and is now an AGENTS.md rule.
-- Gotcha: `gh` initially lacked the `workflow` OAuth scope, so the first
-  push (containing `ci.yml`) was rejected until the owner refreshed auth.
-- Security review of the leaderboard (the only feature touching player
-  data) is recorded on issue #5.
-- First live playtest feedback landed the same session: the flashing lamp
-  now stays in view while scrolling Tutorial/Learn (#16), and Learn
-  practice shows a cheat-sheet key (characters + codes) beside the
-  telegraph key on key-questions, with a compact practice layout so both
-  fit on screen at once (#18), the Tutorial's "Try the key!" block shows
-  the full 36-character reference key beside the telegraph key (#20), and
-  a Clear button resets the Tutorial's "You keyed:" line (#22).
-- Owner then replaced the lesson-based Learn mode wholesale with the
-  three-phase flashcard system (#24) — the #18 cheat sheet went with it
-  (phase 1 shows the code on the card itself) — and added a fourth
-  Streak phase (#26): climb the deck in order, a miss restarts the run,
-  best streak persisted.
-- Learn card runs now fit the viewport (#28): lamp floats in the corner
-  during runs, card/keyer spacing tightened; also fixed "Play again" on a
-  completed phase jumping straight to the celebration instead of
-  restarting.
-- Play's Catch mode no longer displays the word (#30): caught letters
-  stay revealed, the current position is a "?", the rest are "_" — the
-  code must actually be decoded.
+- Morse Power will ship inside Know It All as a package built by the new
+  `app-packages` tool (its own local repo next to this one, outside this
+  repo). The package carries its own Node runtime, pinned by SHA-256 per
+  SECURITY.md invariant 4, and is built only from committed files, so
+  `data/scores.json` can never be in it.
+- The server listened on every interface, so the packaged `node.exe`
+  would have raised a Windows Firewall prompt and exposed the scores API
+  to the home network. The `HOST` env var fixes that without changing
+  local play. A new test starts the real server with `HOST` and `PORT`
+  set and loads the page from 127.0.0.1.
+- A dry-run package of this branch passed: 90 tests, 33.5 MB zip, and
+  the unzipped package answered `/`, `/api/scores` and `/lib/morse.js`
+  while listening on 127.0.0.1 only.
+- Releasing a version from now on: in `app-packages`, run
+  `.\release.ps1 morse-power <version>`. It tests, packages, smoke-tests,
+  tags `v<version>` and attaches the zip to a GitHub release here.
 
 ## Next
 
-1. Playtest with the kids and turn their feedback into new feature issues
+1. If this repo's GitHub Releases page has no `v1.0.0` yet, release the
+   first package from `main`: `.\release.ps1 morse-power 1.0.0` in
+   `app-packages`.
+2. Playtest with the kids and turn their feedback into new feature issues
    on the board (owner action — the fun kind).
-2. Future feature candidates, if wanted: whole-word receive rounds at true
+3. Future feature candidates, if wanted: whole-word receive rounds at true
    letter spacing, per-player profiles, adjustable round length, a
    Koch-style speed-building mode. Each would be a new issue.
 

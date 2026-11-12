@@ -151,7 +151,11 @@ const isMain =
   process.argv[1] && pathToFileURL(resolve(process.argv[1])).href === import.meta.url;
 if (isMain) {
   const port = Number(process.env.PORT) || 3000;
-  createApp().listen(port, () => {
-    console.log(`Morse Power ready at http://localhost:${port}`);
+  // HOST unset: listen on every interface, so phones on the same Wi-Fi can
+  // play. Packaged builds set HOST=127.0.0.1 so the game is reachable only
+  // from this computer and Windows Firewall never asks.
+  const host = process.env.HOST || undefined;
+  createApp().listen({ port, host }, () => {
+    console.log(`Morse Power ready at http://${host ?? "localhost"}:${port}`);
   });
 }
